@@ -1,0 +1,43 @@
+# Base requirements file.
+# Place items here that should be installed in ALL environments.
+
+django==1.8
+djangorestframework==3.1.1
+
+## Needed by the settings base module. Do not remove.
+Unipath==1.1
+dj-database-url==0.3.0
+
+#####################################################
+#
+# Below are some commonly used django apps, included
+# here for convenience.
+# Be sure to add version numbers here!!!!
+#
+#####################################################
+
+# Convenient utilities for Django Models
+# https://github.com/carljm/django-model-utils
+# django-model-utils
+
+# PostgreSQL Database Adapter
+psycopg2==2.6
+
+# MySQL Database Adapter
+# django-cymysql
+
+#####################################################
+#
+# Django REST Framework Addons
+# Some usefull third party addons to DRF
+#
+#####################################################
+
+# https://github.com/juanriaza/django-rest-framework-msgpack
+# djangorestframework-msgpack
+
+# https://github.com/gizmag/drf-ujson-renderer
+drf_ujson==1.2
+
+# https://github.com/marcgibbons/django-rest-swagger
+django-rest-swagger==0.2.9
