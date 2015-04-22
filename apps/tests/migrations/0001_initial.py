@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             name='Test',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('uri', models.URLField()),
+                ('test_uri', models.URLField()),
                 ('main_revision', models.CharField(max_length=10)),
                 ('secondary_revision', models.CharField(max_length=10)),
             ],
