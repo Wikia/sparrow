@@ -7,5 +7,11 @@ from .models import Test
 
 
 class TestSerializer(serializers.HyperlinkedModelSerializer):
+    results = serializers.HyperlinkedRelatedField(
+        many=True,
+        read_only=True,
+        view_name='testresult-detail'
+    )
+
     class Meta:
         model = Test

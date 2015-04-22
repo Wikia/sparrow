@@ -6,10 +6,12 @@ from django.contrib import admin
 from rest_framework import routers
 
 from tests.views import TestViewSet
+from results.views import TestResultViewSet
 
 
 router = routers.DefaultRouter()
 router.register(r'tests', TestViewSet)
+router.register(r'results', TestResultViewSet)
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
