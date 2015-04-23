@@ -125,6 +125,7 @@ INSTALLED_APPS = (
     # local apps
     'tests',
     'results',
+    'tasks',
 )
 
 ## Django REST Framework Settings
