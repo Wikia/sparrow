@@ -127,6 +127,7 @@ INSTALLED_APPS = (
     'test_runs',
     'results',
     'tasks',
+    'testrunner',
 )
 
 ## Django REST Framework Settings
