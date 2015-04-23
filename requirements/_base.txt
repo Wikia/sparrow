@@ -45,3 +45,13 @@ drf_ujson==1.2
 
 # https://github.com/marcgibbons/django-rest-swagger
 django-rest-swagger==0.2.9
+
+#####################################################
+#
+# Other packages
+#
+#####################################################
+
+# Support for JSON in database models
+# https://bitbucket.org/schinckel/django-jsonfield/
+jsonfield==1.0.3
