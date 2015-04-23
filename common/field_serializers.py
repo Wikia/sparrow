@@ -9,6 +9,9 @@ class JSONField(serializers.Field):
     """ Serializer for JSONField -- required to make field writable"""
 
     def to_internal_value(self, value):
+        if value is None or isinstance(value, dict) or isinstance(value, list):
+            return value
+
         try:
             obj = ujson.loads(value)
         except ValueError:
@@ -17,4 +20,4 @@ class JSONField(serializers.Field):
         return obj
 
     def to_representation(self, value):
-        return ujson.dumps(value)
+        return value
