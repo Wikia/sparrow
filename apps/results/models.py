@@ -7,6 +7,7 @@ from django.db import models
 class TestResult(models.Model):
     id = models.AutoField(primary_key=True)
     test = models.ForeignKey('tests.Test', related_name='results')
+    created = models.DateField(auto_now_add=True)
 
     def __repr__(self):
         return "{0} #{1}".format(self.__class__.__name__, self.id)
