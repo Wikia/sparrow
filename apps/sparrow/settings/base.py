@@ -169,3 +169,15 @@ LOGGING = {
         },
     }
 }
+
+SPARROW_TEST_RUNNER = {
+    'manager_host': {
+        'hostname': get_env_var('SPARROW_RUNNER_MANAGER_HOST'),
+        'username': get_env_var('SPARROW_RUNNER_MANAGER_USERNAME'),
+    },
+    'target_hosts': [
+        {
+            'hostname': get_env_var('SPARROW_RUNNER_TARGET_HOST'),
+        }
+    ]
+}

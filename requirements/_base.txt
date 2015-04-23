@@ -58,3 +58,6 @@ jsonfield==1.0.3
 
 # Paramiko SSH client
 paramiko=1.15.2
+
+# Requests
+requests=2.6.2

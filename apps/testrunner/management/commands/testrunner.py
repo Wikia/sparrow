@@ -4,8 +4,8 @@ from ...runner import TestRunner
 class Command(BaseCommand):
     help = 'Test runner'
 
-    def add_arguments(self, parser):
-        parser.add_argument('test_id', nargs='+', type=int)
+    # def add_arguments(self, parser):
+    #     parser.add_argument('test_id', nargs='+', type=int)
 
     def handle(self, *args, **options):
         test_runner = TestRunner()
