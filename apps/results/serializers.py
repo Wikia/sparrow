@@ -4,8 +4,11 @@ from __future__ import unicode_literals
 from rest_framework import serializers
 
 from .models import TestResult
+from common.field_serializers import JSONField
 
 
 class TestResultSerializer(serializers.HyperlinkedModelSerializer):
+    results = JSONField()
+
     class Meta:
         model = TestResult
