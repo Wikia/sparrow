@@ -12,7 +12,7 @@ class TaskStatus(enum.Enum):
     ERROR = -1
 
 
-class Tasks(models.Model):
+class Task(models.Model):
     id = models.AutoField(primary_key=True)
     test = models.ForeignKey('tests.Test', related_name='tasks')
     created = models.DateField(auto_now_add=True)

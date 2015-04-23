@@ -7,13 +7,13 @@ from rest_framework import routers
 
 from tests.views import TestViewSet
 from results.views import TestResultViewSet
-from tasks.views import TasksViewSet
+from tasks.views import TaskViewSet
 
 
 router = routers.DefaultRouter()
 router.register(r'tests', TestViewSet)
 router.register(r'results', TestResultViewSet)
-router.register(r'tasks', TasksViewSet)
+router.register(r'tasks', TaskViewSet)
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),

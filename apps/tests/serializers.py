@@ -12,6 +12,11 @@ class TestSerializer(serializers.HyperlinkedModelSerializer):
         read_only=True,
         view_name='testresult-detail'
     )
+    tasks = serializers.HyperlinkedRelatedField(
+        many=True,
+        read_only=True,
+        view_name='task-detail'
+    )
 
     class Meta:
         model = Test

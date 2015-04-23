@@ -12,12 +12,12 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Tasks',
+            name='Task',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('created', models.DateField(auto_now_add=True)),
                 ('status', models.IntegerField(default=0)),
-                ('test', models.ForeignKey(related_name='tasks', to='tests.Test')),
+                ('test', models.ForeignKey(to='tests.Test', related_name='tasks')),
             ],
         ),
     ]
