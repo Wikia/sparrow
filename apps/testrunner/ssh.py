@@ -35,7 +35,7 @@ class SSHConnection(object):
 
     def __init__(self, hostname, username='', password='',
                  port=22, debug=False, debug_file='/tmp/paramiko.log',
-                 timeout=1800):
+                 timeout=18000):
         self.hostname = hostname
         self.port = port
         self.username = username
@@ -122,6 +122,7 @@ class SSHConnection(object):
             if temp_file_name is not None:
                 os.remove(temp_file_name)
 
+    @connection_required
     def execute(self, cmd):
         """
         Execute a commend on remote host

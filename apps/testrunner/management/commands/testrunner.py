@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from ...runner import TestRunner
+from ...queue import TaskQueueConsumer
 
 class Command(BaseCommand):
     help = 'Test runner'
@@ -8,8 +8,8 @@ class Command(BaseCommand):
     #     parser.add_argument('test_id', nargs='+', type=int)
 
     def handle(self, *args, **options):
-        test_runner = TestRunner()
-        test_runner.run_loop()
+        test_runner = TaskQueueConsumer()
+        test_runner.run()
         for test_id in options['test_id']:
             self.stdout.write('Test = {}'.format(test_id))
             # try:
