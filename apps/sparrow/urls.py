@@ -5,13 +5,13 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from rest_framework import routers
 
-from tests.views import TestViewSet
+from test_runs.views import TestRunViewSet
 from results.views import TestResultViewSet
 from tasks.views import TaskViewSet
 
 
 router = routers.DefaultRouter()
-router.register(r'tests', TestViewSet)
+router.register(r'test_runs', TestRunViewSet)
 router.register(r'results', TestResultViewSet)
 router.register(r'tasks', TaskViewSet)
 

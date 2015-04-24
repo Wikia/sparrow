@@ -3,10 +3,10 @@ from __future__ import unicode_literals
 
 from rest_framework import serializers
 
-from .models import Test
+from .models import TestRun
 
 
-class TestSerializer(serializers.HyperlinkedModelSerializer):
+class TestRunSerializer(serializers.HyperlinkedModelSerializer):
     results = serializers.HyperlinkedRelatedField(
         many=True,
         read_only=True,
@@ -19,4 +19,4 @@ class TestSerializer(serializers.HyperlinkedModelSerializer):
     )
 
     class Meta:
-        model = Test
+        model = TestRun

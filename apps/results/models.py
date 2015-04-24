@@ -7,7 +7,7 @@ import jsonfield
 
 class TestResult(models.Model):
     id = models.AutoField(primary_key=True)
-    test = models.ForeignKey('tests.Test', related_name='results')
+    test_run = models.ForeignKey('test_runs.TestRun', related_name='results')
     created = models.DateField(auto_now_add=True)
     results = jsonfield.JSONField(default={})
 

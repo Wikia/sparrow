@@ -11,12 +11,14 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Test',
+            name='TestRun',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('test_uri', models.URLField()),
+                ('test_run_uri', models.URLField()),
                 ('main_revision', models.CharField(max_length=10)),
                 ('secondary_revision', models.CharField(max_length=10)),
+                ('status', models.IntegerField(default=0)),
+                ('created', models.DateField(auto_now_add=True)),
             ],
         ),
     ]

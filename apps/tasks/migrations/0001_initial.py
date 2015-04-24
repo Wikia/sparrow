@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('tests', '0003_test_created'),
+        ('test_runs', '0001_initial'),
     ]
 
     operations = [
@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('created', models.DateField(auto_now_add=True)),
                 ('status', models.IntegerField(default=0)),
-                ('test', models.ForeignKey(to='tests.Test', related_name='tasks')),
+                ('test', models.ForeignKey(to='test_runs.TestRun', related_name='tasks')),
             ],
         ),
     ]
