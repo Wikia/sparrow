@@ -123,6 +123,7 @@ INSTALLED_APPS = (
     'rest_framework',
 
     # local apps
+    'rest_framework_swagger',
     'tests',
     'results',
     'tasks',
