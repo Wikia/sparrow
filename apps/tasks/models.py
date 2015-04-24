@@ -14,7 +14,7 @@ class TaskStatus(enum.Enum):
 
 class Task(models.Model):
     id = models.AutoField(primary_key=True)
-    test = models.ForeignKey('test_runs.TestRun', related_name='tasks')
+    test_run = models.ForeignKey('test_runs.TestRun', related_name='tasks')
     created = models.DateField(auto_now_add=True)
     status = enum.EnumField(TaskStatus, default=TaskStatus.PENDING)
 
