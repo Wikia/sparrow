@@ -24,7 +24,7 @@ class TestRun(models.Model):
         return "{0}(#{1}): {2}@{3}".format(
             self.__class__.__name__,
             self.id,
-            self.test_uri,
+            self.test_run_uri,
             self.main_revision
         )
 
