@@ -8,7 +8,7 @@ from common.field_serializers import JSONField
 
 
 class TestResultSerializer(serializers.HyperlinkedModelSerializer):
-    results = JSONField()
+    results = JSONField(required=False)
 
     class Meta:
         model = TestResult
