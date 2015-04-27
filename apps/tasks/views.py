@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import list_route
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.exceptions import NotFound
 
 from .serializers import TaskSerializer
 from .models import Task, TaskStatus
@@ -17,28 +16,24 @@ class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
 
-    @detail_route(['GET'])
-    def fetch(self, request, pk=None):
-        """ This method will fetch given task and set it's status from PENDING to IN_PROGRESS.
+    @list_route()
+    def fetch(self, request):
+        """ This method will fetch first task with status PENDING and set it's status to IN_PROGRESS.
 
         It's purpose is to acquire task for process and set it as being processed so no other
-        task runners can fetch the same tasks multiple times multiple. Method will fail if the
-        given task is in status other than PENDING.
+        task runners can fetch the same tasks multiple times multiple. This implement behaviour
+        similar to queue.
 
         Args:
             request (Request): Request data
-            pk (int): ID of the task to fetch
 
         Returns:
-            Response: up-to-date task representation
+            Response: Details about the fetched task
         """
-        task = get_object_or_404(self.queryset, pk=pk)
+        task = self.queryset.filter(status=TaskStatus.PENDING).order_by('id').first()
 
-        if task.status != TaskStatus.PENDING:
-            return Response(
-                {'status': 'Task not in PENDING status'},
-                status=status.HTTP_412_PRECONDITION_FAILED
-            )
+        if task is None:
+            raise NotFound('No pending tasks found')
 
         task.status = TaskStatus.IN_PROGRESS
         task.save()
