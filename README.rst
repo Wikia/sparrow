@@ -78,7 +78,7 @@ Set the contents as follows::
     export SPARROW_DATABASE_URL="postgresql://username:password@hostname:port/database";
     export SPARROW_SECRET_KEY="";
     export DJANGO_SETTINGS_MODULE="sparrow.settings.local";
-    export PYTHONPATH="/path/to/sparrow/apps";
+    export PYTHONPATH="/path/to/sparrow";
 
 Setting ``DJANGO_SETTINGS_MODULE`` to ``sparrow.settings.local``,
 is not strictly necessary, but helpful to avoid the need for the
