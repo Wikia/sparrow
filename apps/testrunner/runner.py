@@ -30,4 +30,4 @@ class SimpleTest(Task):
         response_time = float(http_response.headers['X-Backend-Response-Time'])
 
         self.result['response_time'] = response_time
-        self.ok = True
+        self.status = self.COMPLETED

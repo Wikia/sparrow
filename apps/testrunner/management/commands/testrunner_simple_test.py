@@ -22,4 +22,4 @@ class Command(BaseCommand):
         test_run = SimpleTest(task)
         test_run.run()
 
-        pprint.pprint(test_run.get_result().data)
+        pprint.pprint(test_run.result)
