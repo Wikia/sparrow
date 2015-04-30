@@ -6,6 +6,7 @@ import StringIO
 
 import paramiko
 
+from .logger import logger
 
 __all__ = ['SSHConnection']
 
@@ -127,6 +128,7 @@ class SSHConnection(object):
         """
         Execute a commend on remote host
         """
+        logger.info('Running remote command: {} ...'.format(cmd))
         channel = self.connection.get_transport().open_session()
         channel.get_pty()
         channel.settimeout(self.timeout)
@@ -155,4 +157,7 @@ class SSHConnection(object):
         except socket.timeout:
             raise SSHException("Socket timeout")
 
+        logger.info('Exit code = {}'.format(status))
+        logger.debug('Stdout:\n{}'.format(stdout.getvalue()))
+        logger.debug('Stderr:\n{}'.format(stderr.getvalue()))
         return status, stdout, stderr

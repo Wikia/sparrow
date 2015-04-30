@@ -15,9 +15,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         task = Task(None,1,{
+            'id': 1,
             'app_commit': 'dev',
             'config_commit': 'dev',
-            'url': 'http://community.wikia.com/wiki/Special:Version',
+            'url': 'http://muppet.synth1.wikia-dev.com/wiki/Special:Version',
         })
         test_run = SimpleTest(task)
         test_run.run()

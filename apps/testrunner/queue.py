@@ -1,17 +1,16 @@
 import functools
 import json
-import logging
 import time
 
 import requests
 
+from .logger import logger
 from .runner import SimpleTest
 
 
-logger = logging.getLogger(__name__)
 
 
-def exception_guard(message, default_value=None):
+def exception_guard(message, value_on_error):
     @functools.wraps(exception_guard)
     def decorator(f):
         @functools.wraps(f)
@@ -19,8 +18,8 @@ def exception_guard(message, default_value=None):
             try:
                 return f(*args, **kwargs)
             except:
-                logger.error(message, exc_info=True)
-            return default_value
+                logger.warning(message, exc_info=True)
+            return value_on_error
 
         return wrapper
 
@@ -55,42 +54,49 @@ class Task(dict):
         self.id = id
         super(Task, self).__init__(*args, **kwargs)
 
+    def release(self):
+        self.repo.release(self)
+
+    def save_reslut(self, result):
+        self.repo.submit_result(self, result)
+
 
 class TaskQueueConsumer(object):
     def __init__(self, repo=None):
         self.repo = repo or TaskRepo()
 
     def run(self):
+        logger.info('Starting TaskQueueConsumer')
         while True:
             task = self.acquire_task()
-            if not task:
+            if task is not None:
                 time.sleep(10)
                 continue
 
-            logger.debug('Acquired test #{} for execution'.format(task.id))
+            logger.info('Acquired task #{} for execution'.format(task.id))
 
             task_result = self.run_task(task)
 
             if task_result:
                 self.save_result(task, task_result)
-                logger.debug('Completed task execution successfully.')
+                logger.info('Completed task execution successfully.')
             else:
-                logger.debug('Failed executing task. Releasing the task.')
+                logger.warning('Failed executing task #{}. Releasing the task.'.format(task.id))
                 self.release_task(task)
 
-    @exception_guard('Error while acquiring task', None)
+    @exception_guard('Error while acquiring task', value_on_error=None)
     def acquire_task(self):
         return self.repo.acquire()
 
-    @exception_guard('Error while saving result')
+    @exception_guard('Error while saving result', value_on_error=None)
     def save_result(self, task, result):
-        self.repo.submit_result(task, result)
+        task.save_result(result)
 
-    @exception_guard('Error while releasing task')
+    @exception_guard('Error while releasing task', value_on_error=None)
     def release_task(self, task):
-        self.repo.release(task)
+        task.release()
 
-    @exception_guard('Error while running task', None)
+    @exception_guard('Error while running task', value_on_error=None)
     def run_task(self, task):
         simple_test = SimpleTest(**task)
         simple_test.run()

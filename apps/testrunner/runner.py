@@ -1,5 +1,5 @@
+from .logger import logger
 from .tasks import Task, Deploy, HttpGet
-
 
 class SimpleTest(Task):
     class Config:
@@ -7,6 +7,9 @@ class SimpleTest(Task):
         TARGET_ENV = 'dev-synth1'
 
     def run(self):
+        logger.info('Executing task #{}'.format(self.params['id']))
+
+        logger.info('Running deploy task...')
         deploy_task = Deploy(
             deploy_host=self.Config.DEPLOY_HOST,
             app='wikia',
@@ -20,14 +23,17 @@ class SimpleTest(Task):
         if not deploy_task.ok:
             raise RuntimeError('Could not deploy application')
 
+        logger.info('Running http get task...')
         http_get_task = HttpGet(url=self.params['url'])
         http_get_task.run()
 
         if not http_get_task.ok:
             raise RuntimeError('Could not perform HTTP request to application')
 
+        logger.info('Fetching response time...')
         http_response = http_get_task.result['response']
         response_time = float(http_response.headers['X-Backend-Response-Time'])
 
         self.result['response_time'] = response_time
         self.status = self.COMPLETED
+        logger.info('Task #{} execution completed'.format(self.params['id']))

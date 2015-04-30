@@ -1,6 +1,7 @@
 # Base settings file
 
 import os
+import sys
 from unipath import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -159,7 +160,12 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
+        'log_to_stdout': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+        },
     },
     'loggers': {
         'django.request': {
@@ -167,6 +173,11 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'runner': {
+            'handlers': ['log_to_stdout'],
+            'level': 'DEBUG',
+            'propagate': True,
+        }
     }
 }
 
