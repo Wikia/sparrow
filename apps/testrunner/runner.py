@@ -7,7 +7,8 @@ class SimpleTest(Task):
         TARGET_ENV = 'dev-synth1'
 
     def run(self):
-        logger.info('Executing task #{}'.format(self.params['id']))
+        task_id = self.params['id']
+        logger.info('Started execution of task #{}'.format(task_id))
 
         logger.info('Running deploy task...')
         deploy_task = Deploy(
@@ -36,4 +37,4 @@ class SimpleTest(Task):
 
         self.result['response_time'] = response_time
         self.status = self.COMPLETED
-        logger.info('Task #{} execution completed'.format(self.params['id']))
+        logger.info('Finished execution of task #{}'.format(task_id))

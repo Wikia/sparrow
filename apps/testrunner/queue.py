@@ -1,29 +1,11 @@
-import functools
 import json
 import time
 
 import requests
+import sys
 
 from .logger import logger
 from .runner import SimpleTest
-
-
-
-
-def exception_guard(message, value_on_error):
-    @functools.wraps(exception_guard)
-    def decorator(f):
-        @functools.wraps(f)
-        def wrapper(self, *args, **kwargs):
-            try:
-                return f(*args, **kwargs)
-            except:
-                logger.warning(message, exc_info=True)
-            return value_on_error
-
-        return wrapper
-
-    return decorator
 
 
 class TaskRepo(object):
@@ -57,50 +39,67 @@ class Task(dict):
     def release(self):
         self.repo.release(self)
 
-    def save_reslut(self, result):
+    def save_result(self, result):
         self.repo.submit_result(self, result)
 
 
-class TaskQueueConsumer(object):
+class TaskQueueWorker(object):
     def __init__(self, repo=None):
         self.repo = repo or TaskRepo()
 
     def run(self):
-        logger.info('Starting TaskQueueConsumer')
+        logger.info('Started task processor, entering main loop...')
         while True:
-            task = self.acquire_task()
-            if task is not None:
+            try:
+                self.run_one()
+            except KeyboardInterrupt:
+                raise
+            except:
+                logger.warning('Task execution interrupted. Next check in 10 seconds.', exc_info=True)
                 time.sleep(10)
-                continue
 
-            logger.info('Acquired task #{} for execution'.format(task.id))
+    def run_one(self):
+        task = None
+        try:
+            task = self.acquire_task()
 
-            task_result = self.run_task(task)
-
-            if task_result:
-                self.save_result(task, task_result)
-                logger.info('Completed task execution successfully.')
+            if task is not None:
+                self.process_task(task)
             else:
-                logger.warning('Failed executing task #{}. Releasing the task.'.format(task.id))
-                self.release_task(task)
+                logger.debug('No queued task found. Next check in 10 seconds.')
+                time.sleep(10)
+        except:
+            # In case of any error make sure to release current task but try not to
+            # mess with the original exception so the caller can report it.
+            # @see http://www.ianbicking.org/blog/2007/09/re-raising-exceptions.html
+            exc_info = sys.exc_info()
+            logger.info('Task execution interrupted, trying to release current task...')
+            try:
+                if task is not None:
+                    self.release_task(task)
+            except:
+                logger.error('Releasing task #{} failed, it will remain stuck.'.format(task.id))
+            raise exc_info[0], exc_info[1], exc_info[2]
 
-    @exception_guard('Error while acquiring task', value_on_error=None)
-    def acquire_task(self):
-        return self.repo.acquire()
-
-    @exception_guard('Error while saving result', value_on_error=None)
-    def save_result(self, task, result):
-        task.save_result(result)
-
-    @exception_guard('Error while releasing task', value_on_error=None)
-    def release_task(self, task):
-        task.release()
-
-    @exception_guard('Error while running task', value_on_error=None)
-    def run_task(self, task):
+    def process_task(self, task):
+        logger.info('Processing task #{}...'.format(task.id))
         simple_test = SimpleTest(**task)
         simple_test.run()
         if simple_test.ok:
-            return simple_test.result
+            self.save_result(task, simple_test.result)
         else:
-            return None
+            logger.warning('Test execution did not complete successfully')
+
+    def acquire_task(self):
+        logger.debug('Fetching task from queue...')
+        return self.repo.acquire()
+
+    def save_result(self, task, result):
+        logger.debug('Saving result for task #{}...'.format(task.id))
+        task.save_result(result)
+        logger.info('Saved result for task #{}'.format(task.id))
+
+    def release_task(self, task):
+        logger.debug('Releasing task #{}...'.format(task.id))
+        task.release()
+        logger.info('Released task #{}'.format(task.id))
