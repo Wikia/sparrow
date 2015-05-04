@@ -14,10 +14,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Task',
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('created', models.DateField(auto_now_add=True)),
+                ('id', models.AutoField(serialize=False, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
                 ('status', models.IntegerField(default=0)),
-                ('test', models.ForeignKey(to='test_runs.TestRun', related_name='tasks')),
+                ('test_run', models.ForeignKey(related_name='tasks', to='test_runs.TestRun')),
             ],
         ),
     ]

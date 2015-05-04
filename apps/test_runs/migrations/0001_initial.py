@@ -13,12 +13,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TestRun',
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
+                ('id', models.AutoField(serialize=False, primary_key=True)),
                 ('test_run_uri', models.URLField()),
                 ('main_revision', models.CharField(max_length=10)),
                 ('secondary_revision', models.CharField(max_length=10)),
                 ('status', models.IntegerField(default=0)),
-                ('created', models.DateField(auto_now_add=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
             ],
         ),
     ]
