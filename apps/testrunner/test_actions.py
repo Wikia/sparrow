@@ -1,5 +1,6 @@
 import requests
 
+from .logger import logger
 from .ssh import SSHConnection
 
 
@@ -93,11 +94,13 @@ class Deploy(Action):
 
 class HttpGet(Action):
     REQUIRED_PARAMS = (
-        'url'
+        'url',
     )
 
     def run(self):
+        logger.debug('HTTP request (GET): {}'.format(self.params['url']))
         response = requests.get(self.params['url'])
+        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
 
         self.result['response'] = response
         if response.ok:

@@ -21,18 +21,38 @@ class TaskRepo(object):
         response = requests.get(url)
         logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
         if response.ok:
-            task_data = response.json()
+            response_data = response.json()
+            task_data = {
+                'id': response_data['url'],
+                'task_url': response_data['url'],
+                'details_url': response_data['test_run']
+            }
             return Task(self, task_data)
 
+    def get_details(self, url):
+        logger.debug('HTTP request (GET): {}'.format(url))
+        response = requests.get(url)
+        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        response.raise_for_status()
+        if response.ok:
+            response_data = response.json()
+            details_data = {
+                'app_commit': response_data['main_revision'],
+                'config_commit': response_data['secondary_revision'],
+                'url': response_data['test_run_uri']
+            }
+            return details_data
+
+
     def release(self, task):
-        url = '{}/{}/lock'.format(self.URL, task.id)
+        url = task['task_url'] + 'lock'
         logger.debug('HTTP request (DELETE): {}'.format(url))
         response = requests.delete(url)
         logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
         response.raise_for_status()
 
     def submit_result(self, task, result):
-        url = '{}/{}/result'.format(self.URL, task.id)
+        url = task['task_url'] + 'result'
         logger.debug('HTTP request (POST): {}'.format(url))
         response = requests.post(url, json=ujson.dumps(result))
         logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
@@ -48,6 +68,10 @@ class Task(dict):
         super(Task, self).__init__(*args, **kwargs)
         if 'id' not in self:
             raise KeyError('Task data does not specify ID')
+
+    def load_details(self):
+        details_data = self.repo.get_details(self['details_url'])
+        self.update(details_data)
 
     @property
     def repo(self):
@@ -96,9 +120,11 @@ class TaskQueueWorker(object):
         task = None
         exc_info = None
         try:
-            task = self.acquire_task()
+            logger.debug('Fetching task from queue...')
+            task = self.repo.acquire()
 
             if task is not None:
+                task.load_details()
                 self.process_task(task)
             else:
                 logger.debug('No queued task found. Next check in 10 seconds.')
@@ -111,7 +137,9 @@ class TaskQueueWorker(object):
 
         try:
             if task is not None:
-                self.release_task(task)
+                logger.debug('Releasing task #{}...'.format(task.id))
+                task.release()
+                logger.info('Released task #{}'.format(task.id))
         except:
             logger.error('Releasing task #{} failed, it will remain stuck.'.format(task.id))
 
@@ -126,20 +154,8 @@ class TaskQueueWorker(object):
         simple_test = SimpleTestSuite(**task)
         simple_test.run()
         if simple_test.ok:
-            self.save_result(task, simple_test.result)
+            logger.debug('Saving result for task #{}...'.format(task.id))
+            task.save_result(simple_test.result)
+            logger.info('Saved result for task #{}'.format(task.id))
         else:
             logger.warning('Test execution did not complete successfully')
-
-    def acquire_task(self):
-        logger.debug('Fetching task from queue...')
-        return self.repo.acquire()
-
-    def save_result(self, task, result):
-        logger.debug('Saving result for task #{}...'.format(task.id))
-        task.save_result(result)
-        logger.info('Saved result for task #{}'.format(task.id))
-
-    def release_task(self, task):
-        logger.debug('Releasing task #{}...'.format(task.id))
-        task.release()
-        logger.info('Released task #{}'.format(task.id))

@@ -1,4 +1,5 @@
 from django.conf import settings
+import ujson
 
 from .logger import logger
 from .test_actions import Action, Deploy, HttpGet
@@ -13,6 +14,7 @@ class SimpleTestSuite(Action):
     def run(self):
         task_id = self.params['id']
         logger.info('Started execution of task #{}'.format(task_id))
+        logger.debug('params = ' + ujson.dumps(self.params))
 
         logger.info('Running deploy task...')
         deploy_task = Deploy(
