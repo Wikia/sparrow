@@ -16,7 +16,7 @@ class TaskRepo(object):
     URL = 'http://localhost:8000/api/v1/tasks'
 
     def acquire(self):
-        url = '{}/fetch'.format(self.URL)
+        url = '{}/fetch/'.format(self.URL)
         logger.debug('HTTP request (GET): {}'.format(url))
         response = requests.get(url)
         logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
@@ -29,7 +29,8 @@ class TaskRepo(object):
             }
             return Task(self, task_data)
 
-    def get_details(self, url):
+    def _fetch_details(self, task):
+        url = task['details_url']
         logger.debug('HTTP request (GET): {}'.format(url))
         response = requests.get(url)
         logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
@@ -41,18 +42,18 @@ class TaskRepo(object):
                 'config_commit': response_data['secondary_revision'],
                 'url': response_data['test_run_uri']
             }
-            return details_data
+            task.update(details_data)
 
 
     def release(self, task):
-        url = task['task_url'] + 'lock'
+        url = task['task_url'] + 'lock/'
         logger.debug('HTTP request (DELETE): {}'.format(url))
         response = requests.delete(url)
         logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
         response.raise_for_status()
 
     def submit_result(self, task, result):
-        url = task['task_url'] + 'result'
+        url = task['task_url'] + 'result/'
         logger.debug('HTTP request (POST): {}'.format(url))
         response = requests.post(url, json=ujson.dumps(result))
         logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
@@ -69,9 +70,8 @@ class Task(dict):
         if 'id' not in self:
             raise KeyError('Task data does not specify ID')
 
-    def load_details(self):
-        details_data = self.repo.get_details(self['details_url'])
-        self.update(details_data)
+    def load_data(self):
+        self.repo._fetch_details(self)
 
     @property
     def repo(self):
@@ -124,7 +124,7 @@ class TaskQueueWorker(object):
             task = self.repo.acquire()
 
             if task is not None:
-                task.load_details()
+                task.load_data()
                 self.process_task(task)
             else:
                 logger.debug('No queued task found. Next check in 10 seconds.')

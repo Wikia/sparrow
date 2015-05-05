@@ -100,7 +100,10 @@ class HttpGet(Action):
     def run(self):
         logger.debug('HTTP request (GET): {}'.format(self.params['url']))
         response = requests.get(self.params['url'])
-        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        if response.ok:
+            logger.debug('HTTP response {}: <full dump skipped> ({} bytes)'.format(response.status_code,len(response.content)))
+        else:
+            logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
 
         self.result['response'] = response
         if response.ok:
