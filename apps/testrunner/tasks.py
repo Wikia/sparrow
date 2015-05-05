@@ -9,14 +9,16 @@ class Task(object):
     COMPLETED = 2
     FAILED = -1
 
-    REQUIRED_PARAMS = []
+    REQUIRED_PARAMS = ()
 
     def __init__(self, params=None, **kwargs):
         self.status = self.PENDING
 
         self.params = {}
-        self.params.update(params or {})
+        if params is not None:
+            self.params.update(params)
         self.params.update(kwargs)
+
         self.result = {}
 
         self.validate_params()
@@ -37,12 +39,12 @@ class Task(object):
 
 
 class Deploy(Task):
-    REQUIRED_PARAMS = [
+    REQUIRED_PARAMS = (
         'deploy_host',
         'app',
         'env',
         'repos',
-    ]
+    )
 
     def run(self):
         self.ssh_connection = SSHConnection(self.params['deploy_host'])
@@ -90,9 +92,9 @@ class Deploy(Task):
 
 
 class HttpGet(Task):
-    REQUIRED_PARAMS = [
+    REQUIRED_PARAMS = (
         'url'
-    ]
+    )
 
     def run(self):
         response = requests.get(self.params['url'])

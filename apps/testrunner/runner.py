@@ -1,10 +1,14 @@
+from django.conf import settings
+
 from .logger import logger
 from .tasks import Task, Deploy, HttpGet
 
 class SimpleTest(Task):
-    class Config:
-        DEPLOY_HOST = 'deploy-s3'
-        TARGET_ENV = 'dev-synth1'
+    def __init__(self, *args, **kwargs):
+        super(SimpleTest,self).__init__(*args,**kwargs)
+        test_runner_config = settings.SPARROW_TEST_RUNNER
+        self.DEPLOY_HOST = test_runner_config['deploy_host']['hostname']
+        self.TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
 
     def run(self):
         task_id = self.params['id']
@@ -12,9 +16,9 @@ class SimpleTest(Task):
 
         logger.info('Running deploy task...')
         deploy_task = Deploy(
-            deploy_host=self.Config.DEPLOY_HOST,
+            deploy_host=self.DEPLOY_HOST,
             app='wikia',
-            env=self.Config.TARGET_ENV,
+            env=self.TARGET_ENV,
             repos={
                 'app': self.params['app_commit'],
                 'config': self.params['config_commit']

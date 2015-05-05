@@ -14,7 +14,7 @@ class Command(BaseCommand):
     #     parser.add_argument('test_id', nargs='+', type=int)
 
     def handle(self, *args, **options):
-        task = Task(None,1,{
+        task = Task(None,{
             'id': 1,
             'app_commit': 'dev',
             'config_commit': 'dev',
