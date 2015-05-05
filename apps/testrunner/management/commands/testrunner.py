@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from ...queue import TaskQueueWorker
+from ...runner import TaskQueueWorker
 
 class Command(BaseCommand):
     help = 'Test runner'

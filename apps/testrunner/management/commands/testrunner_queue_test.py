@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from ...queue import TaskQueueWorker, Task
+from ...runner import TaskQueueWorker, Task
 from ...logger import logger
 
 

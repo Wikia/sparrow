@@ -1,44 +1,145 @@
-from django.conf import settings
+import time
+import ujson
+
+import requests
+import sys
 
 from .logger import logger
-from .tasks import Task, Deploy, HttpGet
+from .test_suites import SimpleTestSuite
 
-class SimpleTest(Task):
-    def __init__(self, *args, **kwargs):
-        super(SimpleTest,self).__init__(*args,**kwargs)
-        test_runner_config = settings.SPARROW_TEST_RUNNER
-        self.DEPLOY_HOST = test_runner_config['deploy_host']['hostname']
-        self.TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
+
+class TaskRepo(object):
+    """
+    Encapsulates HTTP tasks API
+    """
+    # todo: get rid of hardcoded URL here
+    URL = 'http://localhost:8000/api/v1/tasks'
+
+    def acquire(self):
+        url = '{}/fetch'.format(self.URL)
+        logger.debug('HTTP request (GET): {}'.format(url))
+        response = requests.get(url)
+        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        if response.ok:
+            task_data = response.json()
+            return Task(self, task_data)
+
+    def release(self, task):
+        url = '{}/{}/lock'.format(self.URL, task.id)
+        logger.debug('HTTP request (DELETE): {}'.format(url))
+        response = requests.delete(url)
+        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        response.raise_for_status()
+
+    def submit_result(self, task, result):
+        url = '{}/{}/result'.format(self.URL, task.id)
+        logger.debug('HTTP request (POST): {}'.format(url))
+        response = requests.post(url, json=ujson.dumps(result))
+        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        response.raise_for_status()
+
+
+class Task(dict):
+    """
+    Represents a single task fetched from the repository
+    """
+    def __init__(self, repo, *args, **kwargs):
+        self._repo = repo
+        super(Task, self).__init__(*args, **kwargs)
+        if 'id' not in self:
+            raise KeyError('Task data does not specify ID')
+
+    @property
+    def repo(self):
+        return self._repo
+
+    @repo.setter
+    def repo(self, value):
+        if self._repo is not None:
+            raise ValueError('Task #{} already has a repo parent.')
+        self._repo = value
+
+    @property
+    def id(self):
+        return self['id']
+
+    def release(self):
+        self.repo.release(self)
+
+    def save_result(self, result):
+        self.repo.submit_result(self, result)
+
+
+class TaskQueueWorker(object):
+    """
+    Daemon worker which fetches tasks from the queue, executes them and sends back result data
+    """
+
+    def __init__(self, repo=None):
+        self.repo = repo or TaskRepo()
 
     def run(self):
-        task_id = self.params['id']
-        logger.info('Started execution of task #{}'.format(task_id))
+        logger.info('Started task processor, entering main loop...')
+        while True:
+            work_done = True
+            try:
+                work_done = self.run_one()
+            except KeyboardInterrupt:
+                raise
+            except:
+                logger.warning('Task execution interrupted. Next check in 10 seconds.', exc_info=True)
 
-        logger.info('Running deploy task...')
-        deploy_task = Deploy(
-            deploy_host=self.DEPLOY_HOST,
-            app='wikia',
-            env=self.TARGET_ENV,
-            repos={
-                'app': self.params['app_commit'],
-                'config': self.params['config_commit']
-            })
-        deploy_task.run()
+            if not work_done: # = was totally idle
+                time.sleep(10)
 
-        if not deploy_task.ok:
-            raise RuntimeError('Could not deploy application')
+    def run_one(self):
+        task = None
+        exc_info = None
+        try:
+            task = self.acquire_task()
 
-        logger.info('Running http get task...')
-        http_get_task = HttpGet(url=self.params['url'])
-        http_get_task.run()
+            if task is not None:
+                self.process_task(task)
+            else:
+                logger.debug('No queued task found. Next check in 10 seconds.')
+                return False
+        except:
+            # In case of any error make sure to release current task but try not to
+            # mess with the original exception so the caller can report it.
+            # @see http://www.ianbicking.org/blog/2007/09/re-raising-exceptions.html
+            exc_info = sys.exc_info()
 
-        if not http_get_task.ok:
-            raise RuntimeError('Could not perform HTTP request to application')
+        try:
+            if task is not None:
+                self.release_task(task)
+        except:
+            logger.error('Releasing task #{} failed, it will remain stuck.'.format(task.id))
 
-        logger.info('Fetching response time...')
-        http_response = http_get_task.result['response']
-        response_time = float(http_response.headers['X-Backend-Response-Time'])
+        # raise saved exception if any
+        if exc_info:
+            raise exc_info[0], exc_info[1], exc_info[2]
 
-        self.result['response_time'] = response_time
-        self.status = self.COMPLETED
-        logger.info('Finished execution of task #{}'.format(task_id))
+        return True
+
+    def process_task(self, task):
+        logger.info('Processing task #{}...'.format(task.id))
+        simple_test = SimpleTestSuite(**task)
+        simple_test.run()
+        if simple_test.ok:
+            self.save_result(task, simple_test.result)
+        else:
+            logger.warning('Test execution did not complete successfully')
+
+    def acquire_task(self):
+        logger.debug('Fetching task from queue...')
+        return self.repo.acquire()
+
+    def save_result(self, task, result):
+        logger.debug('Saving result for task #{}...'.format(task.id))
+        task.save_result(result)
+        logger.info('Saved result for task #{}'.format(task.id))
+
+    def release_task(self, task):
+        logger.debug('Releasing task #{}...'.format(task.id))
+        task.release()
+        logger.info('Released task #{}'.format(task.id))

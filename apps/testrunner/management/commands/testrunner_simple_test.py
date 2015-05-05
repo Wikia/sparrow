@@ -3,8 +3,8 @@ import pprint
 
 from django.core.management.base import BaseCommand, CommandError
 
-from ...queue import Task
-from ...runner import SimpleTest
+from ...runner import Task
+from ...test_suites import SimpleTestSuite
 
 
 class Command(BaseCommand):
@@ -20,7 +20,7 @@ class Command(BaseCommand):
             'config_commit': 'dev',
             'url': 'http://muppet.synth1.wikia-dev.com/wiki/Special:Version',
         })
-        test_run = SimpleTest(task)
+        test_run = SimpleTestSuite(task)
         test_run.run()
 
         pprint.pprint(test_run.result)

@@ -3,7 +3,7 @@ import requests
 from .ssh import SSHConnection
 
 
-class Task(object):
+class Action(object):
     PENDING = 0
     RUNNING = 1
     COMPLETED = 2
@@ -38,7 +38,7 @@ class Task(object):
         raise NotImplementedError('Task.run() is an abstract method.')
 
 
-class Deploy(Task):
+class Deploy(Action):
     REQUIRED_PARAMS = (
         'deploy_host',
         'app',
@@ -91,7 +91,7 @@ class Deploy(Task):
                                stderr.getvalue())
 
 
-class HttpGet(Task):
+class HttpGet(Action):
     REQUIRED_PARAMS = (
         'url'
     )
