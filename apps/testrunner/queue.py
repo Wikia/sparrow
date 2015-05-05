@@ -1,5 +1,5 @@
-import ujson
 import time
+import ujson
 
 import requests
 import sys
