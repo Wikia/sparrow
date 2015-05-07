@@ -16,6 +16,7 @@ In the project directory run commands::
     docker-compose up
 
 Your server should be up and running. To check under what IP it is listening run command::
+
     boot2docker ip
 
 Installing Tools and Dependencies
