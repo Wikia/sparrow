@@ -19,8 +19,13 @@ Your server should be up and running. To check under what IP it is listening run
 
     boot2docker ip
 
+That's it! You are ready to go!
+
 Installing Tools and Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you don't have Docker installed you can follow the "manual" process which is
+described below.
 
 Set up a virtual environment. Virtualenvwrapper_ is highly recommended.
 
