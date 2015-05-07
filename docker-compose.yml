@@ -7,5 +7,8 @@ web:
    - db
   ports:
    - "8000:8000"
+  environment:
+   POSTGRES_PASSWORD: "foo"
+   SPARROW_SECRET_KEY: ""
 db:
   image: postgres

@@ -11,6 +11,8 @@ Getting Started - Development
 Running using Docker
 ~~~~~~~~~~~~~~~~~~~~
 
+Set SECRET_KEY environment variable in ``docker-compose.yml`` to some random string.
+
 In the project directory run commands::
 
     docker-compose up
