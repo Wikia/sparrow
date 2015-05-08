@@ -23,3 +23,9 @@ coverage==4.0a5
 
 # For easy fixtures and test creation
 model_mommy==1.2.4
+
+# For jenkins integration
+django-jenkins==0.17.0
+pep8==1.6.2
+pyflakes==0.8.1
+flake8==2.4.0
