@@ -18,6 +18,7 @@ class TestResultTestCase(APITestCase):
 
         payload = {
             'test_run': reverse('testrun-detail', args=[self.test_run.id, ]),
+            'task': reverse('task-detail', args=[self.task_to_delete.id, ]),
         }
 
         response = self.client.post(url, payload)
