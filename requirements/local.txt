@@ -25,7 +25,7 @@ coverage==4.0a5
 model_mommy==1.2.4
 
 # For jenkins integration
-django_jenkins==0.17.0
+django-jenkins==0.17.0
 pep8==1.6.2
 pyflakes==0.8.1
 flake8==2.4.0
