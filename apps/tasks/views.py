@@ -20,7 +20,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
 
     @detail_route(methods=['delete'])
-    def lock(self, request, pk):
+    def lock(self, request, pk=None):
         """ This method implements releasing lock on task in progress.
 
         Queue clients needs to be able to return tasks to queue (retry process) on non fatal errors. This method

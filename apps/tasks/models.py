@@ -3,6 +3,10 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django_enumfield import enum
+import django.dispatch
+
+
+task_status_changed = django.dispatch.Signal(providing_args=['instance', ])
 
 
 class TaskStatus(enum.Enum):
@@ -17,6 +21,20 @@ class Task(models.Model):
     test_run = models.ForeignKey('test_runs.TestRun', related_name='tasks')
     created = models.DateTimeField(auto_now_add=True)
     status = enum.EnumField(TaskStatus, default=TaskStatus.PENDING)
+
+    __original_status = None
+
+    def __init__(self, *args, **kwargs):
+        super(Task, self).__init__(*args, **kwargs)
+
+        self.__original_status = self.status
+
+    def save(self, *args, **kwargs):
+        super(Task, self).save(*args, **kwargs)
+
+        if self.__original_status != self.status:
+            task_status_changed.send(self.__class__, instance=self)
+            self.__original_status = self.status
 
     def __repr__(self):
         return "{0} #{1}".format(self.__class__.__name__, self.id)
