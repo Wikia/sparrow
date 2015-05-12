@@ -5,6 +5,8 @@ import requests
 import sys
 import six
 
+from django.core.urlresolvers import reverse
+
 from .logger import logger
 from .test_suites import SimpleTestSuite
 
@@ -14,13 +16,15 @@ class TaskRepo(object):
     Encapsulates HTTP tasks API
     """
     # todo: get rid of hardcoded URL here
-    URL = 'http://localhost:8000/api/v1/tasks'
+    TASKS_API_URL = 'http://localhost:8000' + reverse('task-list')
+    RESULTS_API_URL = 'http://localhost:8000' + reverse('testresult-list')
+
 
     def acquire(self):
-        url = '{}/fetch/'.format(self.URL)
+        url = '{}fetch'.format(self.TASKS_API_URL)
         logger.debug('HTTP request (GET): {}'.format(url))
         response = requests.get(url)
-        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        logger.debug('HTTP response {}: {}'.format(response.status_code, response.content))
         if response.ok:
             response_data = response.json()
             task_data = {
@@ -34,7 +38,7 @@ class TaskRepo(object):
         url = task['details_url']
         logger.debug('HTTP request (GET): {}'.format(url))
         response = requests.get(url)
-        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        logger.debug('HTTP response {}: {}'.format(response.status_code, response.content))
         response.raise_for_status()
         if response.ok:
             response_data = response.json()
@@ -50,14 +54,18 @@ class TaskRepo(object):
         url = task['task_url'] + 'lock/'
         logger.debug('HTTP request (DELETE): {}'.format(url))
         response = requests.delete(url)
-        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        logger.debug('HTTP response {}: {}'.format(response.status_code, response.content))
         response.raise_for_status()
 
     def submit_result(self, task, result):
-        url = task['task_url'] + 'result/'
-        logger.debug('HTTP request (POST): {}'.format(url))
-        response = requests.post(url, json=ujson.dumps(result))
-        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        payload = {
+            'results': ujson.dumps(result),
+            'task': task['task_url'],
+            'test_run': task['details_url'],
+        }
+        logger.debug('HTTP request (POST): {} with params: {}'.format(self.RESULTS_API_URL, payload))
+        response = requests.post(self.RESULTS_API_URL, data=payload)
+        logger.debug('HTTP response {}: {}'.format(response.status_code, response.content))
         response.raise_for_status()
 
 

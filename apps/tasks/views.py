@@ -8,7 +8,6 @@ from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import NotFound
-from rest_framework.exceptions import NotAcceptable
 from rest_framework.exceptions import APIException
 
 
@@ -73,24 +72,6 @@ class TaskViewSet(viewsets.ModelViewSet):
             task.status = TaskStatus.DONE
         else:
             task.status = TaskStatus.ERROR
-        task.save()
-
-        serializer = self.serializer_class(task, context={'request': request})
-
-        return Response(serializer.data)
-
-    @detail_route(['post'])
-    def result(self, request, pk):
-        task = self.get_object()
-
-        if task.status != TaskStatus.IN_PROGRESS:
-            raise PreconditionFailed('Task is not being processed now')
-
-        result, created = task.results.get_or_create(test_run=task.test_run)
-        result.results = request.data
-        result.save()
-
-        task.status = TaskStatus.DONE
         task.save()
 
         serializer = self.serializer_class(task, context={'request': request})
