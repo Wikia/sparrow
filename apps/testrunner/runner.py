@@ -42,7 +42,7 @@ class TaskRepo(object):
             raise AutoDiscoverFailed('Cannot find API URIs: {0}'.format(api_descr)) from ex
 
     def acquire(self):
-        url = '{}fetch'.format(self.TASKS_API_URL)
+        url = '{}fetch/'.format(self.TASKS_API_URL)
         logger.debug('HTTP request (GET): {}'.format(url))
         response = requests.get(url)
         logger.debug('HTTP response {}: {}'.format(response.status_code, response.content))
