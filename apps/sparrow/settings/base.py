@@ -1,6 +1,7 @@
 # Base settings file
 
 import os
+import sys
 from unipath import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -127,6 +128,7 @@ INSTALLED_APPS = (
     'test_runs',
     'results',
     'tasks',
+    'testrunner',
 )
 
 ## Django REST Framework Settings
@@ -158,7 +160,12 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
+        'log_to_stdout': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+        },
     },
     'loggers': {
         'django.request': {
@@ -166,5 +173,21 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'runner': {
+            'handlers': ['log_to_stdout'],
+            'level': 'DEBUG',
+            'propagate': True,
+        }
     }
+}
+
+SPARROW_TEST_RUNNER = {
+    'deploy_host': {
+        'hostname': get_env_var('SPARROW_RUNNER_DEPLOY_HOST'),
+    },
+    'target_hosts': [
+        {
+            'hostname': get_env_var('SPARROW_RUNNER_TARGET_HOST'),
+        }
+    ]
 }
