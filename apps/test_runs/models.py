@@ -2,7 +2,12 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.dispatch import receiver
 from django_enumfield import enum
+
+from tasks.models import Task
+from tasks.models import TaskStatus
+from tasks.models import task_status_changed
 
 
 class TestRunStatus(enum.Enum):
@@ -32,3 +37,26 @@ class TestRun(models.Model):
         return "{0} #{1}".format(self.__class__.__name__, self.id)
 
     __str__ = __unicode__
+
+
+@receiver(task_status_changed, sender=Task)
+def task_changed(sender, instance, **kwargs):
+    """ Callback which synchronises TestRun status with Tasks statuses.
+
+    Here lies simple logic which tries to synch TestRun status with all sub-Tasks
+    statuses. It covers some very basic cases such as:
+        * starting Task starts parent TestRun
+        * any error in Task will result in setting error on parent TestRun
+        * finishing all sub-Task will mark TestRun as done
+    """
+    test_run = instance.test_run
+
+    if instance.status == TaskStatus.IN_PROGRESS and test_run.status == TestRunStatus.PENDING:
+        test_run.status = TestRunStatus.IN_PROGRESS
+        test_run.save()
+    elif instance.status == TaskStatus.ERROR and test_run.status != TestRunStatus.ERROR:
+        test_run.status = TestRunStatus.ERROR
+        test_run.save()
+    elif instance.status == TestRunStatus.DONE and test_run.status == TestRunStatus.IN_PROGRESS:
+        test_run.status = TestRunStatus.DONE
+        test_run.save()
