@@ -189,5 +189,6 @@ SPARROW_TEST_RUNNER = {
         {
             'hostname': get_env_var('SPARROW_RUNNER_TARGET_HOST'),
         }
-    ]
+    ],
+    'api_server': get_env_var('SPARROW_API_URI'),
 }

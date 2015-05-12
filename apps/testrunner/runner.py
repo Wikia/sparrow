@@ -5,7 +5,7 @@ import requests
 import sys
 import six
 
-from django.core.urlresolvers import reverse
+from django.conf import settings
 
 from .logger import logger
 from .test_suites import SimpleTestSuite
@@ -15,10 +15,20 @@ class TaskRepo(object):
     """
     Encapsulates HTTP tasks API
     """
-    # todo: get rid of hardcoded URL here
-    TASKS_API_URL = 'http://localhost:8000' + reverse('task-list')
-    RESULTS_API_URL = 'http://localhost:8000' + reverse('testresult-list')
 
+    API_SERVER = None
+    TASKS_API_URL = None
+    RESULTS_API_URL = None
+
+
+    def __init__(self):
+        # Auto Discover API URIs
+        self.API_SERVER = settings.SPARROW_TEST_RUNNER['api_server']
+        req = requests.get(self.API_SERVER)
+        req.raise_for_status()
+        api_descr = req.json()
+        self.TASKS_API_URL = api_descr['tasks']
+        self.RESULTS_API_URL = api_descr['results']
 
     def acquire(self):
         url = '{}fetch'.format(self.TASKS_API_URL)
