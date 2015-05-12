@@ -7,39 +7,43 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from tasks.models import TaskStatus
+
 
 class TestResultTestCase(APITestCase):
     def setUp(self):
         self.test_run = mommy.make('test_runs.TestRun')
-        self.result_to_delete = mommy.make('results.TestResult')
+        self.task_to_delete = mommy.make('tasks.Task')
+        self.result = mommy.make('results.TestResult')
 
-    def test_create_result(self):
-        url = reverse('testresult-list')
+    def test_create_task(self):
+        url = reverse('task-list')
 
         payload = {
             'test_run': reverse('testrun-detail', args=[self.test_run.id, ]),
-            'task': reverse('task-detail', args=[self.result_to_delete.id, ]),
+            'status': TaskStatus.PENDING,
+            'results': [],
         }
 
         response = self.client.post(url, payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_read_result(self):
-        url = reverse('testresult-detail', args=[self.result_to_delete.id, ])
+    def test_read_task(self):
+        url = reverse('task-detail', args=[self.task_to_delete.id, ])
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_result(self):
-        url = reverse('testresult-detail', args=[self.result_to_delete.id, ])
-        payload = {'results': {'foo': 'bar', }}
+        url = reverse('task-detail', args=[self.task_to_delete.id, ])
+        payload = {'status': TaskStatus.ERROR}
 
         response = self.client.patch(url, payload)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['results'], payload['results'])
+        self.assertEqual(response.data['status'], payload['status'])
 
     def test_delete_result(self):
-        url = reverse('testresult-detail', args=[self.result_to_delete.id, ])
+        url = reverse('task-detail', args=[self.task_to_delete.id, ])
 
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
