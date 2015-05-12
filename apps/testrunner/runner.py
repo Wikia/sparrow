@@ -6,9 +6,14 @@ import sys
 import six
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 from .logger import logger
 from .test_suites import SimpleTestSuite
+
+
+class AutoDiscoverFailed(ImproperlyConfigured):
+    pass
 
 
 class TaskRepo(object):
@@ -20,15 +25,21 @@ class TaskRepo(object):
     TASKS_API_URL = None
     RESULTS_API_URL = None
 
-
     def __init__(self):
         # Auto Discover API URIs
         self.API_SERVER = settings.SPARROW_TEST_RUNNER['api_server']
-        req = requests.get(self.API_SERVER)
-        req.raise_for_status()
-        api_descr = req.json()
-        self.TASKS_API_URL = api_descr['tasks']
-        self.RESULTS_API_URL = api_descr['results']
+        api_descr = {}
+
+        try:
+            req = requests.get(self.API_SERVER)
+            req.raise_for_status()
+
+            api_descr = req.json()
+
+            self.TASKS_API_URL = api_descr['tasks']
+            self.RESULTS_API_URL = api_descr['results']
+        except Exception as ex:
+            raise AutoDiscoverFailed('Cannot find API URIs: {0}'.format(api_descr)) from ex
 
     def acquire(self):
         url = '{}fetch'.format(self.TASKS_API_URL)
