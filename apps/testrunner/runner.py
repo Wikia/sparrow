@@ -3,6 +3,7 @@ import ujson
 
 import requests
 import sys
+import six
 
 from .logger import logger
 from .test_suites import SimpleTestSuite
@@ -145,7 +146,7 @@ class TaskQueueWorker(object):
 
         # raise saved exception if any
         if exc_info:
-            raise exc_info[0], exc_info[1], exc_info[2]
+            six.reraise(exc_info[0], exc_info[1], exc_info[2])
 
         return True
 

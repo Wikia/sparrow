@@ -2,7 +2,7 @@ import functools
 import os
 import socket
 import tempfile
-import StringIO
+from six import StringIO
 
 import paramiko
 

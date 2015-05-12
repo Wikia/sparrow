@@ -1,6 +1,9 @@
 # Base requirements file.
 # Place items here that should be installed in ALL environments.
 
+# To keep the compatibilty with Python 2.x and 3.x
+six==1.9.0
+
 django==1.8.1
 djangorestframework==3.1.1
 
