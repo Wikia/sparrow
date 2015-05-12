@@ -1,8 +1,11 @@
 from django.conf import settings
 import ujson
 
-from .logger import logger
+import logging
 from .test_actions import Action, Deploy, HttpGet
+
+logger = logging.getLogger(__name__)
+
 
 class SimpleTestSuite(Action):
     def __init__(self, *args, **kwargs):
@@ -39,6 +42,7 @@ class SimpleTestSuite(Action):
 
         logger.info('Fetching response time...')
         http_response = http_get_task.result['response']
+        logger.debug('Headers got: {}'.format(http_response.headers))
         response_time = float(http_response.headers['X-Backend-Response-Time'])
 
         self.result['response_time'] = response_time

@@ -1,7 +1,9 @@
 import requests
 
-from .logger import logger
 from .ssh import SSHConnection
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Action(object):

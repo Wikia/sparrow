@@ -1,7 +1,9 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from ...runner import TaskQueueWorker, Task
-from ...logger import logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class FakeTaskRepo(object):

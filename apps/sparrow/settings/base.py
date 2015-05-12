@@ -147,6 +147,10 @@ ACCOUNT_ACTIVATION_DAYS = 7
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
+
+# see: https://www.caktusgroup.com/blog/2015/01/27/Django-Logging-Configuration-logging_config-default-settings-logger/
+LOGGING_CONFIG = None
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -164,6 +168,7 @@ LOGGING = {
         'log_to_stdout': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+            'formatter': 'colored',
             'stream': sys.stdout,
         },
     },
@@ -173,13 +178,22 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-        'runner': {
+        'testrunner': {
             'handlers': ['log_to_stdout'],
             'level': 'DEBUG',
             'propagate': True,
         }
+    },
+    'formatters': {
+        'colored': {
+            '()': 'colorlog.ColoredFormatter',
+            'format': "%(asctime)s %(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s"
+        }
     }
 }
+
+import logging.config
+logging.config.dictConfig(LOGGING)
 
 SPARROW_TEST_RUNNER = {
     'deploy_host': {

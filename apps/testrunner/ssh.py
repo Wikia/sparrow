@@ -6,8 +6,9 @@ from six import BytesIO
 
 import paramiko
 
-from .logger import logger
+import logging
 
+logger = logging.getLogger(__name__)
 __all__ = ['SSHConnection']
 
 SSHException = paramiko.SSHException

@@ -8,11 +8,6 @@ from results.models import TestResult
 
 
 class TaskSerializer(serializers.HyperlinkedModelSerializer):
-    results = serializers.HyperlinkedRelatedField(
-        many=True,
-        queryset=TestResult.objects.all(),
-        view_name='testresult-detail'
-    )
-
     class Meta:
         model = Task
+        fields = ('id', 'test_run', 'created', 'status', 'results', 'url')
