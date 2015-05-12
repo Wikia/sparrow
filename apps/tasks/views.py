@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from rest_framework import viewsets, status
-from rest_framework.decorators import list_route, detail_route
-from rest_framework.response import Response
-from rest_framework.exceptions import NotFound, APIException
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import viewsets
+from rest_framework.decorators import list_route
+from rest_framework.decorators import detail_route
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotAcceptable
+from rest_framework.exceptions import APIException
+
 
 from .serializers import TaskSerializer
 from .models import Task, TaskStatus
@@ -47,20 +52,28 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    @detail_route(['delete'])
+    @detail_route(methods=['delete'])
     def lock(self, request, pk):
+        """ This method implements releasing lock on task in progress.
+
+        Queue clients needs to be able to return tasks to queue (retry process) on non fatal errors. This method
+        sets status to DONE or ERROR depending on the task result.
+
+        Args:
+            request (Request): Request data
+            pk (int): Id of the task to remove lock from
+        """
         task = self.get_object()
 
-        if task.status == TaskStatus.PENDING:
+        if task.status != TaskStatus.IN_PROGRESS:
             raise PreconditionFailed('Task has not been fetched yet')
 
-        if task.status == TaskStatus.IN_PROGRESS:
-            if task.results.count() > 0:
-                # assuming test has been executed successfully
-                task.status = TaskStatus.DONE
-            else:
-                task.status = TaskStatus.ERROR
-            task.save()
+        if task.results.count() > 0:
+            # assuming test has been executed successfully
+            task.status = TaskStatus.DONE
+        else:
+            task.status = TaskStatus.ERROR
+        task.save()
 
         serializer = self.serializer_class(task, context={'request': request})
 

@@ -18,6 +18,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEBUG_APPS = (
     'debug_toolbar',
     'django_extensions',
+    'django_jenkins'
 )
 INTERNAL_IPS = ('127.0.0.1',)
 MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
@@ -34,6 +35,11 @@ def show_toolbar(request):
 DEBUG_TOOLBAR_CONFIG = {
     'SHOW_TOOLBAR_CALLBACK': "sparrow.settings.local.show_toolbar",
 }
+
+JENKINS_TASKS = (
+    'django_jenkins.tasks.run_pep8',
+    'django_jenkins.tasks.run_pyflakes'
+)
 
 
 INSTALLED_APPS += DEBUG_APPS
