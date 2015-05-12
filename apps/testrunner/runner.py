@@ -5,22 +5,47 @@ import requests
 import sys
 import six
 
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
+
 from .logger import logger
 from .test_suites import SimpleTestSuite
+
+
+class AutoDiscoverFailed(ImproperlyConfigured):
+    pass
 
 
 class TaskRepo(object):
     """
     Encapsulates HTTP tasks API
     """
-    # todo: get rid of hardcoded URL here
-    URL = 'http://localhost:8000/api/v1/tasks'
+
+    API_SERVER = None
+    TASKS_API_URL = None
+    RESULTS_API_URL = None
+
+    def __init__(self):
+        # Auto Discover API URIs
+        self.API_SERVER = settings.SPARROW_TEST_RUNNER['api_server']
+        api_descr = {}
+
+        try:
+            req = requests.get(self.API_SERVER)
+            req.raise_for_status()
+
+            api_descr = req.json()
+
+            self.TASKS_API_URL = api_descr['tasks']
+            self.RESULTS_API_URL = api_descr['results']
+        except Exception as ex:
+            raise AutoDiscoverFailed('Cannot find API URIs: {0}'.format(api_descr)) from ex
 
     def acquire(self):
-        url = '{}/fetch/'.format(self.URL)
+        url = '{}fetch/'.format(self.TASKS_API_URL)
         logger.debug('HTTP request (GET): {}'.format(url))
         response = requests.get(url)
-        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        logger.debug('HTTP response {}: {}'.format(response.status_code, response.content))
         if response.ok:
             response_data = response.json()
             task_data = {
@@ -34,7 +59,7 @@ class TaskRepo(object):
         url = task['details_url']
         logger.debug('HTTP request (GET): {}'.format(url))
         response = requests.get(url)
-        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        logger.debug('HTTP response {}: {}'.format(response.status_code, response.content))
         response.raise_for_status()
         if response.ok:
             response_data = response.json()
@@ -50,14 +75,18 @@ class TaskRepo(object):
         url = task['task_url'] + 'lock/'
         logger.debug('HTTP request (DELETE): {}'.format(url))
         response = requests.delete(url)
-        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        logger.debug('HTTP response {}: {}'.format(response.status_code, response.content))
         response.raise_for_status()
 
     def submit_result(self, task, result):
-        url = task['task_url'] + 'result/'
-        logger.debug('HTTP request (POST): {}'.format(url))
-        response = requests.post(url, json=ujson.dumps(result))
-        logger.debug('HTTP response {}: {}'.format(response.status_code,response.content))
+        payload = {
+            'results': ujson.dumps(result),
+            'task': task['task_url'],
+            'test_run': task['details_url'],
+        }
+        logger.debug('HTTP request (POST): {} with params: {}'.format(self.RESULTS_API_URL, payload))
+        response = requests.post(self.RESULTS_API_URL, data=payload)
+        logger.debug('HTTP response {}: {}'.format(response.status_code, response.content))
         response.raise_for_status()
 
 

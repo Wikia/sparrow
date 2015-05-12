@@ -2,7 +2,7 @@ import functools
 import os
 import socket
 import tempfile
-from six import StringIO
+from six import BytesIO
 
 import paramiko
 
@@ -133,8 +133,8 @@ class SSHConnection(object):
         channel.get_pty()
         channel.settimeout(self.timeout)
 
-        stdout = StringIO.StringIO()
-        stderr = StringIO.StringIO()
+        stdout = BytesIO()
+        stderr = BytesIO()
         status = False
 
         try:
