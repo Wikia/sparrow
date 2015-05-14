@@ -11,6 +11,7 @@ from rest_framework.test import APITestCase
 class TestResultTestCase(APITestCase):
     def setUp(self):
         self.test_run = mommy.make('test_runs.TestRun')
+        self.task = mommy.make('tasks.Task')
         self.result_to_delete = mommy.make('results.TestResult')
 
     def test_create_result(self):
@@ -18,7 +19,7 @@ class TestResultTestCase(APITestCase):
 
         payload = {
             'test_run': reverse('testrun-detail', args=[self.test_run.id, ]),
-            'task': reverse('task-detail', args=[self.result_to_delete.id, ]),
+            'task': reverse('task-detail', args=[self.task.id, ]),
         }
 
         response = self.client.post(url, payload)
