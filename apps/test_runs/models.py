@@ -8,7 +8,7 @@ from django_enumfield import enum
 from tasks.models import Task
 from tasks.models import TaskStatus
 from tasks.models import task_status_changed
-
+from common.validators import GithubRevisionValidator
 
 class TestRunStatus(enum.Enum):
     PENDING = 0
@@ -20,8 +20,14 @@ class TestRunStatus(enum.Enum):
 class TestRun(models.Model):
     id = models.AutoField(primary_key=True)
     test_run_uri = models.URLField()
-    main_revision = models.CharField(max_length=10)
-    secondary_revision = models.CharField(max_length=10)
+    main_revision = models.CharField(
+        max_length=10,
+        validators=[GithubRevisionValidator, ]
+    )
+    secondary_revision = models.CharField(
+        max_length=10,
+        validators=[GithubRevisionValidator, ]
+    )
     status = enum.EnumField(TestRunStatus, default=TestRunStatus.PENDING)
     created = models.DateTimeField(auto_now_add=True)
 
