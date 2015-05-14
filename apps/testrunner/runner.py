@@ -133,7 +133,7 @@ class TaskQueueWorker(object):
     def __init__(self, repo=None):
         self.repo = repo or TaskRepo()
 
-    def run(self):
+    def run(self, daemonize=False):
         logger.info('Started task processor, entering main loop...')
         while True:
             work_done = True
@@ -144,7 +144,11 @@ class TaskQueueWorker(object):
             except:
                 logger.warning('Task execution interrupted. Next check in 10 seconds.', exc_info=True)
 
+            if not daemonize:
+                break
+
             if not work_done: # = was totally idle
+                logger.info('Waiting for 10 seconds to get new task.')
                 time.sleep(10)
 
     def run_one(self):
@@ -158,7 +162,7 @@ class TaskQueueWorker(object):
                 task.load_data()
                 self.process_task(task)
             else:
-                logger.info('No queued task found. Next check in 10 seconds.')
+                logger.info('No queued task found.')
                 return False
         except:
             # In case of any error make sure to release current task but try not to
