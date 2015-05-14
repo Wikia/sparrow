@@ -7,40 +7,46 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from test_runs.models import TestRunStatus
+
 
 class TestResultTestCase(APITestCase):
     def setUp(self):
-        self.test_run = mommy.make('test_runs.TestRun')
-        self.task = mommy.make('tasks.Task')
-        self.result_to_delete = mommy.make('results.TestResult')
+        self.testrun_to_delete = mommy.make('test_runs.TestRun')
+        self.task_to_delete = mommy.make('tasks.Task')
+        self.result = mommy.make('results.TestResult')
 
-    def test_create_result(self):
-        url = reverse('testresult-list')
+    def test_create_testrun(self):
+        url = reverse('testrun-list')
 
         payload = {
-            'test_run': reverse('testrun-detail', args=[self.test_run.id, ]),
-            'task': reverse('task-detail', args=[self.task.id, ]),
+            'test_run_uri': 'http://www.google.com/',
+            'main_revision': 'dev',
+            'secondary_revision': '1234sdfg',
         }
 
         response = self.client.post(url, payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg='Create failed: {0}'.format(response.data))
 
-    def test_read_result(self):
-        url = reverse('testresult-detail', args=[self.result_to_delete.id, ])
+        # check if Task was automatically created
+        self.assertEqual(len(response.data['tasks']), 1, msg='Sub task missing: {0}'.format(response.data))
+
+    def test_read_testrun(self):
+        url = reverse('testrun-detail', args=[self.testrun_to_delete.id, ])
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg='Read failed: {0}'.format(response.data))
 
-    def test_update_result(self):
-        url = reverse('testresult-detail', args=[self.result_to_delete.id, ])
-        payload = {'results': {'foo': 'bar', }}
+    def test_update_testrun(self):
+        url = reverse('testrun-detail', args=[self.testrun_to_delete.id, ])
+        payload = {'status': TestRunStatus.PENDING}
 
         response = self.client.patch(url, payload)
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg='Update failed: {0}'.format(response.data))
-        self.assertEqual(response.data['results'], payload['results'])
+        self.assertEqual(response.data['status'], payload['status'])
 
     def test_delete_result(self):
-        url = reverse('testresult-detail', args=[self.result_to_delete.id, ])
+        url = reverse('testrun-detail', args=[self.testrun_to_delete.id, ])
 
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, msg='Delete failed: {0}'.format(response.data))

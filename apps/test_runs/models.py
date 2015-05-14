@@ -3,12 +3,13 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.dispatch import receiver
+from django.utils.translation import ugettext as _
 from django_enumfield import enum
 
 from tasks.models import Task
 from tasks.models import TaskStatus
 from tasks.models import task_status_changed
-
+from common.validators import GithubRevisionValidator
 
 class TestRunStatus(enum.Enum):
     PENDING = 0
@@ -16,12 +17,25 @@ class TestRunStatus(enum.Enum):
     DONE = 2
     ERROR = -1
 
+    labels = {
+        PENDING: _('Pending'),
+        IN_PROGRESS: _('In progress'),
+        DONE: _('Done'),
+        ERROR: _('Error'),
+    }
+
 
 class TestRun(models.Model):
     id = models.AutoField(primary_key=True)
     test_run_uri = models.URLField()
-    main_revision = models.CharField(max_length=10)
-    secondary_revision = models.CharField(max_length=10)
+    main_revision = models.CharField(
+        max_length=10,
+        validators=[GithubRevisionValidator, ]
+    )
+    secondary_revision = models.CharField(
+        max_length=10,
+        validators=[GithubRevisionValidator, ]
+    )
     status = enum.EnumField(TestRunStatus, default=TestRunStatus.PENDING)
     created = models.DateTimeField(auto_now_add=True)
 

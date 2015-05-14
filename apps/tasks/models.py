@@ -2,8 +2,10 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from django_enumfield import enum
 import django.dispatch
+from django.utils.translation import ugettext as _
+
+from django_enumfield import enum
 
 
 task_status_changed = django.dispatch.Signal(providing_args=['instance', ])
@@ -14,6 +16,13 @@ class TaskStatus(enum.Enum):
     IN_PROGRESS = 1
     DONE = 2
     ERROR = -1
+
+    labels = {
+        PENDING: _('Pending'),
+        IN_PROGRESS: _('In progress'),
+        DONE: _('Done'),
+        ERROR: _('Error'),
+    }
 
 
 class Task(models.Model):
