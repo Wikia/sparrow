@@ -22,24 +22,24 @@ class TestResultTestCase(APITestCase):
         }
 
         response = self.client.post(url, payload)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, msg='Create failed: {0}'.format(response.data))
 
     def test_read_result(self):
         url = reverse('testresult-detail', args=[self.result_to_delete.id, ])
 
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, msg='Read failed: {0}'.format(response.data))
 
     def test_update_result(self):
         url = reverse('testresult-detail', args=[self.result_to_delete.id, ])
         payload = {'results': {'foo': 'bar', }}
 
         response = self.client.patch(url, payload)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, msg='Update failed: {0}'.format(response.data))
         self.assertEqual(response.data['results'], payload['results'])
 
     def test_delete_result(self):
         url = reverse('testresult-detail', args=[self.result_to_delete.id, ])
 
         response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, msg='Delete failed: {0}'.format(response.data))
