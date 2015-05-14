@@ -8,8 +8,10 @@ import six
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
-from .logger import logger
+import logging
 from .test_suites import SimpleTestSuite
+
+logger = logging.getLogger(__name__)
 
 
 class AutoDiscoverFailed(ImproperlyConfigured):
@@ -49,7 +51,7 @@ class TaskRepo(object):
         if response.ok:
             response_data = response.json()
             task_data = {
-                'id': response_data['url'],
+                'id': response_data['id'],
                 'task_url': response_data['url'],
                 'details_url': response_data['test_run']
             }
@@ -61,14 +63,13 @@ class TaskRepo(object):
         response = requests.get(url)
         logger.debug('HTTP response {}: {}'.format(response.status_code, response.content))
         response.raise_for_status()
-        if response.ok:
-            response_data = response.json()
-            details_data = {
-                'app_commit': response_data['main_revision'],
-                'config_commit': response_data['secondary_revision'],
-                'url': response_data['test_run_uri']
-            }
-            task.update(details_data)
+        response_data = response.json()
+        details_data = {
+            'app_commit': response_data['main_revision'],
+            'config_commit': response_data['secondary_revision'],
+            'url': response_data['test_run_uri']
+        }
+        task.update(details_data)
 
 
     def release(self, task):
@@ -157,7 +158,7 @@ class TaskQueueWorker(object):
                 task.load_data()
                 self.process_task(task)
             else:
-                logger.debug('No queued task found. Next check in 10 seconds.')
+                logger.info('No queued task found. Next check in 10 seconds.')
                 return False
         except:
             # In case of any error make sure to release current task but try not to

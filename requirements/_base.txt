@@ -64,3 +64,7 @@ paramiko==1.15.2
 
 # Requests
 requests==2.6.2
+
+# Colorful logs
+# https://github.com/borntyping/python-colorlog
+colorlog==2.6.0

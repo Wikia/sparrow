@@ -20,3 +20,5 @@ class TestRunSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = TestRun
+        fields = ('id','test_run_uri', 'main_revision', 'secondary_revision',
+                  'status', 'created', 'tasks', 'results', 'url')
