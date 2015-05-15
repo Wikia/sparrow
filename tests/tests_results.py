@@ -9,7 +9,7 @@ from rest_framework.test import APITestCase
 
 
 class TestResultTestCase(APITestCase):
-    def setUp(self):  # NOPMD
+    def setUp(self):
         self.test_run = mommy.make('test_runs.TestRun')
         self.task = mommy.make('tasks.Task')
         self.result_to_delete = mommy.make('results.TestResult')
