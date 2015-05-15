@@ -11,7 +11,6 @@ from tasks.models import TaskStatus
 
 
 class TestResultTestCase(APITestCase):
-    # NOPMD
     def setUp(self):
         self.test_run = mommy.make('test_runs.TestRun')
         self.task_to_delete = mommy.make('tasks.Task')
