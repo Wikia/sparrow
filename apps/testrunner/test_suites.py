@@ -2,7 +2,7 @@ from django.conf import settings
 import ujson
 
 import logging
-from .test_actions import Action, Deploy, HttpGet
+from .test_actions import Action, Deploy, HttpGet, ProcessResponses
 
 logger = logging.getLogger(__name__)
 
@@ -34,17 +34,19 @@ class SimpleTestSuite(Action):
             raise RuntimeError('Could not deploy application')
 
         logger.info('Running http get task...')
-        http_get_task = HttpGet(url=self.params['url'])
+        http_get_task = HttpGet(url=self.params['url'], retries=self.params['retries'])
         http_get_task.run()
 
         if not http_get_task.ok:
             raise RuntimeError('Could not perform HTTP request to application')
 
-        logger.info('Fetching response time...')
-        http_response = http_get_task.result['response']
-        logger.debug('Headers got: {}'.format(http_response.headers))
-        response_time = float(http_response.headers['X-Backend-Response-Time'])
+        logger.info('Processing data...')
+        processor = ProcessResponses(responses=http_get_task.result['responses'])
+        processor.run()
 
-        self.result['response_time'] = response_time
+        if not processor.ok:
+            raise RuntimeError('There was an error during data processing')
+
+        self.result['response_time'] = processor.result['response_time']
         self.status = self.COMPLETED
         logger.info('Finished execution of task #{}'.format(task_id))

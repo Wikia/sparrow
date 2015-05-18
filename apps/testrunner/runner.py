@@ -13,6 +13,8 @@ from .test_suites import SimpleTestSuite
 
 logger = logging.getLogger(__name__)
 
+_TEST_RUN_RETRIES = 10  # How many time repeat one test
+
 
 class AutoDiscoverFailed(ImproperlyConfigured):
     pass
@@ -70,7 +72,6 @@ class TaskRepo(object):
             'url': response_data['test_run_uri']
         }
         task.update(details_data)
-
 
     def release(self, task):
         url = task['task_url'] + 'lock/'
@@ -153,7 +154,6 @@ class TaskQueueWorker(object):
 
     def run_one(self):
         task = None
-        exc_info = None
         try:
             logger.debug('Fetching task from queue...')
             task = self.repo.acquire()
@@ -170,23 +170,21 @@ class TaskQueueWorker(object):
             # @see http://www.ianbicking.org/blog/2007/09/re-raising-exceptions.html
             exc_info = sys.exc_info()
 
-        try:
-            if task is not None:
-                logger.debug('Releasing task #{}...'.format(task.id))
-                task.release()
-                logger.info('Released task #{}'.format(task.id))
-        except:
-            logger.error('Releasing task #{} failed, it will remain stuck.'.format(task.id))
+            try:
+                if task is not None:
+                    logger.debug('Releasing task #{}...'.format(task.id))
+                    task.release()
+                    logger.info('Released task #{}'.format(task.id))
+            except:
+                logger.error('Releasing task #{} failed, it will remain stuck.'.format(task.id))
 
-        # raise saved exception if any
-        if exc_info:
             six.reraise(exc_info[0], exc_info[1], exc_info[2])
 
         return True
 
     def process_task(self, task):
         logger.info('Processing task #{}...'.format(task.id))
-        simple_test = SimpleTestSuite(**task)
+        simple_test = SimpleTestSuite(retries=_TEST_RUN_RETRIES, **task)
         simple_test.run()
         if simple_test.ok:
             logger.debug('Saving result for task #{}...'.format(task.id))
