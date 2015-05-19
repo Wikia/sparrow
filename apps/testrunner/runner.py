@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 import logging
-from .test_suites import SimpleTestSuite
+from .test_suites.simple import SimpleTestSuite
 
 logger = logging.getLogger(__name__)
 
