@@ -13,7 +13,8 @@ from .test_suites import SimpleTestSuite
 
 logger = logging.getLogger(__name__)
 
-_TEST_RUN_RETRIES = 10  # How many time repeat one test
+# How many time repeat one test
+_TEST_RUN_RETRIES = 10
 
 
 class AutoDiscoverFailed(ImproperlyConfigured):
