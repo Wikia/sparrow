@@ -2,7 +2,10 @@ from django.conf import settings
 import ujson
 
 import logging
-from .test_actions import Action, Deploy, HttpGet, ProcessResponses
+from .actions import Action
+from .actions.deploy import Deploy
+from .actions.http_get import HttpGet
+from .actions.process_results import ProcessResponses
 
 logger = logging.getLogger(__name__)
 
