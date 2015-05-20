@@ -44,7 +44,7 @@ class TaskRepo(object):
             self.TASKS_API_URL = api_descr['tasks']
             self.RESULTS_API_URL = api_descr['results']
         except Exception as ex:
-            raise AutoDiscoverFailed('Cannot find API URIs: {0}'.format(api_descr)) from ex
+            six.raise_from(AutoDiscoverFailed('Cannot find API URIs: {0}'.format(api_descr)), ex)
 
     def acquire(self):
         url = '{}fetch/'.format(self.TASKS_API_URL)

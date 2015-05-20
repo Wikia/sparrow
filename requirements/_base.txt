@@ -68,3 +68,6 @@ requests==2.7.0
 # Colorful logs
 # https://github.com/borntyping/python-colorlog
 colorlog==2.6.0
+
+# numerical and statistical library
+numpy==1.9.2
