@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import statistics
+import numpy
 import logging
 
 from . import Action
@@ -19,10 +19,10 @@ class ProcessResponses(Action):
 
         metrics = [float(response.headers['X-Backend-Response-Time']) for response in self.params['responses']]
         self.result['response_time'] = {
-            'mean': statistics.mean(metrics),
-            'median': statistics.median(metrics),
-            'lowest': min(metrics),
-            'highest': max(metrics),
+            'mean': numpy.mean(metrics),
+            'median': numpy.median(metrics),
+            'lowest': numpy.min(metrics),
+            'highest': numpy.max(metrics),
         }
 
         self.status = self.COMPLETED
