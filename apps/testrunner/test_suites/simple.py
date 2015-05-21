@@ -8,6 +8,7 @@ import logging
 from testrunner.actions import Action
 from testrunner.actions.deploy import Deploy
 from testrunner.actions.http_get import HttpGet
+from testrunner.actions.http_get import MWProfilerGet
 from testrunner.actions.process_results import ProcessResponses
 
 logger = logging.getLogger(__name__)
@@ -46,13 +47,22 @@ class SimpleTestSuite(Action):
         if not http_get_task.ok:
             raise RuntimeError('Could not perform HTTP request to application')
 
+        logger.info('Running MW Profiler task...')
+        mw_profiler = MWProfilerGet(url=self.params['url'], retries=self.params['retries'])
+        mw_profiler.run()
+
+        if not http_get_task.ok:
+            raise RuntimeError('Could not perform HTTP request to application')
+
         logger.info('Processing data...')
-        processor = ProcessResponses(responses=http_get_task.result['responses'])
+        results = dict(http_get_task.result)
+        results.update(mw_profiler.result)
+        processor = ProcessResponses(results=results)
         processor.run()
 
         if not processor.ok:
             raise RuntimeError('There was an error during data processing')
 
-        self.result['response_time'] = processor.result['response_time']
+        self.result = processor.result
         self.status = self.COMPLETED
         logger.info('Finished execution of task #{}'.format(task_id))
