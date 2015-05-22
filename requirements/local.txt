@@ -28,4 +28,4 @@ model_mommy==1.2.4
 django-jenkins==0.17.0
 pep8==1.6.2
 pyflakes==0.8.1
-flake8==2.4.0
+flake8==2.4.1
