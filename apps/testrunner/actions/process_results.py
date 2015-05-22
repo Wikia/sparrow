@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import numpy
 import logging
 import re
+import six
 
 from . import Action
 
@@ -65,6 +66,15 @@ class ProcessResponses(Action):
                             metrics['memc_dupes'] += count
         return metrics
 
+    @staticmethod
+    def _calculate_stats(values):
+        return {
+            'mean': float(numpy.mean(values)),
+            'median': float(numpy.median(values)),
+            'lowest': float(numpy.min(values)),
+            'highest': float(numpy.max(values)),
+        }
+
     def run(self):
         logger.info('Starting processing results')
 
@@ -72,12 +82,7 @@ class ProcessResponses(Action):
             float(response.headers['X-Backend-Response-Time']) for response in self.params['results']['http_get']
         ]
 
-        self.result['response_time'] = {
-            'mean': numpy.mean(response_times),
-            'median': numpy.median(response_times),
-            'lowest': numpy.min(response_times),
-            'highest': numpy.max(response_times),
-        }
+        self.result['response_time'] = self._calculate_stats(response_times)
 
         for response in self.params['results']['mw_profiler_get']:
             start_pos = response.text.rindex('<!--')
@@ -87,6 +92,16 @@ class ProcessResponses(Action):
                 logger.warn('Cannot find backend performance metrics')
                 continue
 
-            self.result['backend'] = self._parse_metrics(response.text[start_pos+4:end_pos])
+            parsed_metrics = self._parse_metrics(response.text[start_pos+4:end_pos])
+            self.result['backend_metrics'] = {}
+
+            for metric, value in six.iteritems(parsed_metrics):
+                if metric in self.result['backend_metrics']:
+                    self.result['backend_metrics'][metric].append(value)
+                else:
+                    self.result['backend_metrics'][metric] = [value, ]
+
+        for metric, value in six.iteritems(self.result['backend_metrics']):
+            self.result['backend_metrics'][metric] = self._calculate_stats(value)
 
         self.status = self.COMPLETED
