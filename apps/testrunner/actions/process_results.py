@@ -69,6 +69,12 @@ class ProcessResponses(Action):
     @staticmethod
     def _calculate_stats(values):
         return {
+            'count': int(len(values)),
+            '5th_percentile': float(numpy.percentile(values, 5)),
+            '50th_percentile': float(numpy.percentile(values, 50)),
+            '90th_percentile': float(numpy.percentile(values, 90)),
+            '95th_percentile': float(numpy.percentile(values, 95)),
+            'std': float(numpy.std(values)),
             'mean': float(numpy.mean(values)),
             'median': float(numpy.median(values)),
             'lowest': float(numpy.min(values)),
