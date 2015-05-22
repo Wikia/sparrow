@@ -44,10 +44,9 @@ class ProcessResponses(Action):
                 if name == '-total':
                     metrics['server_time'] += time
                 elif name == 'DatabaseBase::query' or name == 'DatabaseBase::query-master':
-                    is_master = name == 'DatabaseBase::query-master'
                     metrics['query_time'] += time
 
-                    if is_master:
+                    if name == 'DatabaseBase::query-master':
                         metrics['query_master'] += count
                     else:
                         metrics['query_slave'] += count
