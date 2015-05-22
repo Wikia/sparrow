@@ -89,6 +89,7 @@ class ProcessResponses(Action):
         ]
 
         self.result['response_time'] = self._calculate_stats(response_times)
+        self.result['backend_metrics'] = {}
 
         for response in self.params['results']['mw_profiler_get']:
             start_pos = response.text.rindex('<!--')
@@ -99,8 +100,6 @@ class ProcessResponses(Action):
                 continue
 
             parsed_metrics = self._parse_metrics(response.text[start_pos+4:end_pos])
-            self.result['backend_metrics'] = {}
-
             for metric, value in six.iteritems(parsed_metrics):
                 if metric in self.result['backend_metrics']:
                     self.result['backend_metrics'][metric].append(value)
