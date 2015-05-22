@@ -19,7 +19,7 @@ class ProcessResponses(Action):
     __PROFILER_REGEXP = re.compile(r'^\s*([\d\.]+\%)\s+([\d\.]+)\s+(\d+)\s+\-\s+([^\s].*[^\s])\s*$')
     __MEMCACHE_REGEXP = re.compile(r'MWMemcached::get.*!(HIT|MISS|DUPE)')
 
-    def _parse_metrics(self, raw_data):
+    def _parse_backend_metrics(self, raw_data):
         metrics = {
             'server_time': 0.0,
             'query_time': 0.0,
@@ -99,7 +99,7 @@ class ProcessResponses(Action):
                 logger.warn('Cannot find backend performance metrics')
                 continue
 
-            parsed_metrics = self._parse_metrics(response.text[start_pos+4:end_pos])
+            parsed_metrics = self._parse_backend_metrics(response.text[start_pos+4:end_pos])
             for metric, value in six.iteritems(parsed_metrics):
                 if metric in self.result['backend_metrics']:
                     self.result['backend_metrics'][metric].append(value)
