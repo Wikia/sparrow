@@ -31,7 +31,7 @@ class TestRawResultTestCase(APITestCase):
 
     def test_update_result(self):
         url = reverse('testrawresult-detail', args=[self.rawresult_to_delete.id, ])
-        payload = {'data': "Some test data.\nMode test data"}
+        payload = {'data': {'line1': 'Some test data.', 'line2': 'More test data'}, }
 
         response = self.client.patch(url, payload)
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg='Update failed: {0}'.format(response.data))
