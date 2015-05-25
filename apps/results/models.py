@@ -18,3 +18,9 @@ class TestResult(models.Model):
     __unicode__ = __repr__
 
     __str__ = __repr__
+
+class TestRawResult(models.Model):
+    id = models.AutoField(primary_key=True)
+    result = models.ForeignKey(TestResult, related_name='raw_results')
+    source = models.CharField(max_length=100)
+    data = models.TextField(default='')
