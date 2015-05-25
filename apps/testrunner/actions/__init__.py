@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from common.utils import camel2snake
+
 
 class Action(object):
     PENDING = 0
@@ -20,6 +22,9 @@ class Action(object):
         self.result = {}
 
         self.validate_params()
+
+        self._RESULT_NAME = camel2snake(self.__class__.__name__)
+        self.result[self._RESULT_NAME] = []
 
     def validate_params(self):
         for param_name in self.REQUIRED_PARAMS:

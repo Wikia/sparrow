@@ -5,7 +5,6 @@ import logging
 import requests
 
 from . import Action
-from common.utils import camel2snake
 
 logger = logging.getLogger(__name__)
 
@@ -15,13 +14,9 @@ class HttpGet(Action):
         'url',
         'retries',
     )
-    _RESULT_NAME = None
 
     def __init__(self, *args, **kwargs):
         super(HttpGet, self).__init__(*args, **kwargs)
-
-        self._RESULT_NAME = camel2snake(self.__class__.__name__)
-        self.result[self._RESULT_NAME] = []
 
     def run(self):
         query_params = {}
