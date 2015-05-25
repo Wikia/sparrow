@@ -1,6 +1,10 @@
 Sparrow
 =======
 
+.. image:: https://requires.io/github/Wikia/sparrow/requirements.svg?branch=master
+     :target: https://requires.io/github/Wikia/sparrow/requirements/?branch=master
+     :alt: Requirements Status
+
 Performance monitoring platform which allows running automated performance tests
 on a given codebase.
 
@@ -82,6 +86,12 @@ Here is a list of the required environment variables:
 * SPARROW_DATABASE_URL
 
 * SPARROW_SECRET_KEY
+
+The following environment variables are required for test runner:
+
+* SPARROW_RUNNER_DEPLOY_HOST
+
+* SPARROW_RUNNER_TARGET_HOST
 
 If you are using virtualenvwrapper, begin editing the ``postactivate`` script as follows::
 

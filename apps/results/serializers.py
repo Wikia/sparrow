@@ -12,3 +12,4 @@ class TestResultSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = TestResult
+        fields = ('id', 'test_run', 'task', 'created', 'results', 'url')

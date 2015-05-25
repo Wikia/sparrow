@@ -1,6 +1,7 @@
 # Base settings file
 
 import os
+import sys
 from unipath import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -127,6 +128,7 @@ INSTALLED_APPS = (
     'test_runs',
     'results',
     'tasks',
+    'testrunner',
 )
 
 ## Django REST Framework Settings
@@ -145,6 +147,10 @@ ACCOUNT_ACTIVATION_DAYS = 7
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
+
+# see: https://www.caktusgroup.com/blog/2015/01/27/Django-Logging-Configuration-logging_config-default-settings-logger/
+LOGGING_CONFIG = None
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -158,7 +164,13 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
+        'log_to_stdout': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'colored',
+            'stream': sys.stdout,
+        },
     },
     'loggers': {
         'django.request': {
@@ -166,5 +178,31 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'testrunner': {
+            'handlers': ['log_to_stdout'],
+            'level': 'DEBUG',
+            'propagate': True,
+        }
+    },
+    'formatters': {
+        'colored': {
+            '()': 'colorlog.ColoredFormatter',
+            'format': "%(asctime)s %(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s"
+        }
     }
+}
+
+import logging.config
+logging.config.dictConfig(LOGGING)
+
+SPARROW_TEST_RUNNER = {
+    'deploy_host': {
+        'hostname': get_env_var('SPARROW_RUNNER_DEPLOY_HOST'),
+    },
+    'target_hosts': [
+        {
+            'hostname': get_env_var('SPARROW_RUNNER_TARGET_HOST'),
+        }
+    ],
+    'api_server': get_env_var('SPARROW_API_URI'),
 }

@@ -1,8 +1,11 @@
 # Base requirements file.
 # Place items here that should be installed in ALL environments.
 
-django==1.8
-djangorestframework==3.1.1
+# To keep the compatibilty with Python 2.x and 3.x
+six==1.9.0
+
+django==1.8.2
+djangorestframework==3.1.2
 
 ## Needed by the settings base module. Do not remove.
 Unipath==1.1
@@ -28,7 +31,7 @@ psycopg2==2.6
 
 # Djangoe Enum Field
 # http://github.com/5monkeys/django-enumfield
-django-enumfield==1.2
+django-enumfield==1.2.1
 
 #####################################################
 #
@@ -44,7 +47,7 @@ django-enumfield==1.2
 drf_ujson==1.2
 
 # https://github.com/marcgibbons/django-rest-swagger
-django-rest-swagger==0.2.9
+django-rest-swagger==0.3.0
 
 #####################################################
 #
@@ -55,3 +58,16 @@ django-rest-swagger==0.2.9
 # Support for JSON in database models
 # https://bitbucket.org/schinckel/django-jsonfield/
 jsonfield==1.0.3
+
+# Paramiko SSH client
+paramiko==1.15.2
+
+# Requests
+requests==2.7.0
+
+# Colorful logs
+# https://github.com/borntyping/python-colorlog
+colorlog==2.6.0
+
+# numerical and statistical library
+numpy==1.9.2
