@@ -1,10 +1,10 @@
 import logging
 import pprint
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from ...test_suites.simple import SimpleTestSuite
 
 from ...runner import Task
-from ...test_suites import SimpleTestSuite
 
 
 class Command(BaseCommand):
@@ -19,6 +19,7 @@ class Command(BaseCommand):
             'app_commit': 'dev',
             'config_commit': 'dev',
             'url': 'http://muppet.synth1.wikia-dev.com/wiki/Special:Version',
+            'retries': 1
         })
         test_run = SimpleTestSuite(task)
         test_run.run()

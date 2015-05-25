@@ -9,6 +9,7 @@ from testrunner.actions import Action
 from testrunner.actions.deploy import Deploy
 from testrunner.actions.http_get import HttpGet
 from testrunner.actions.http_get import MWProfilerGet
+from testrunner.actions.phantomas_run import PhantomasRun
 from testrunner.actions.process_results import ProcessResponses
 
 logger = logging.getLogger(__name__)
@@ -54,9 +55,17 @@ class SimpleTestSuite(Action):
         if not http_get_task.ok:
             raise RuntimeError('Could not perform HTTP request to application')
 
+        logger.info('Running MW Profiler task...')
+        phantomas_run = PhantomasRun(url=self.params['url'], retries=self.params['retries'])
+        phantomas_run.run()
+
+        if not phantomas_run.ok:
+            raise RuntimeError('Could not load app using phantomas')
+
         logger.info('Processing data...')
         results = dict(http_get_task.result)
         results.update(mw_profiler.result)
+        results.update(phantomas_run.result)
         processor = ProcessResponses(results=results)
         processor.run()
 

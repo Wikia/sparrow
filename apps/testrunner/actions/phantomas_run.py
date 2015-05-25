@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class PhantomasRun(Action):
     REQUIRED_PARAMS = (
-        'url'
+        'url',
     )
 
     def __init__(self, *args, **kwargs):
