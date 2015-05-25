@@ -33,6 +33,10 @@ Install development requirements with::
 
     pip install -r requirements/local.txt
 
+Install additional dependencies::
+
+    apt-get install chromium-chromedriver
+
 Setting Environment Variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

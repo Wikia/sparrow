@@ -29,3 +29,6 @@ django-jenkins==0.17.0
 pep8==1.6.2
 pyflakes==0.8.1
 flake8==2.4.0
+
+# Selenium Tests
+selenium==2.45.0

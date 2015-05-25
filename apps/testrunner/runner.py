@@ -185,6 +185,7 @@ class TaskQueueWorker(object):
 
     def process_task(self, task):
         logger.info('Processing task #{}...'.format(task.id))
+
         simple_test = SimpleTestSuite(retries=_TEST_RUN_RETRIES, **task)
         simple_test.run()
         if simple_test.ok:

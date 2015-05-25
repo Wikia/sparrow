@@ -9,6 +9,8 @@ from testrunner.actions import Action
 from testrunner.actions.deploy import Deploy
 from testrunner.actions.http_get import HttpGet
 from testrunner.actions.process_results import ProcessResponses
+from testrunner.actions.run_selenium_test import RunSeleniumTest
+from testrunner.test_suites.selenium_tests.main_page_selenium_test import MainPageSeleniumTest
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +21,17 @@ class SimpleTestSuite(Action):
         test_runner_config = settings.SPARROW_TEST_RUNNER
         self.DEPLOY_HOST = test_runner_config['deploy_host']['hostname']
         self.TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
+
+    def run_selenium_tests(self):
+        logger.info('Running selenium task...')
+        simple_selenium_test = MainPageSeleniumTest()
+        run_selenium_test_action = RunSeleniumTest()
+        run_selenium_test_action.run(simple_selenium_test)
+
+        if not run_selenium_test_action.ok:
+            raise RuntimeError('Could not perform selenium test')
+        else:
+            self.result['selenium'] = run_selenium_test_action.result
 
     def run(self):
         task_id = self.params['id']
@@ -45,6 +58,8 @@ class SimpleTestSuite(Action):
 
         if not http_get_task.ok:
             raise RuntimeError('Could not perform HTTP request to application')
+
+        self.run_selenium_tests()
 
         logger.info('Processing data...')
         processor = ProcessResponses(responses=http_get_task.result['responses'])
