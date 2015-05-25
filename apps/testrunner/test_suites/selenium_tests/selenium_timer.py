@@ -44,4 +44,3 @@ class SeleniumTimer(object):
             total_load_time = self.total_load_time,
             measurements = self.measurements
         )
-
