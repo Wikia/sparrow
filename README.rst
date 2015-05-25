@@ -1,6 +1,10 @@
 Sparrow
 =======
 
+.. image:: https://requires.io/github/Wikia/sparrow/requirements.svg?branch=master
+     :target: https://requires.io/github/Wikia/sparrow/requirements/?branch=master
+     :alt: Requirements Status
+
 Performance monitoring platform which allows running automated performance tests
 on a given codebase.
 
