@@ -29,6 +29,7 @@ class TaskRepo(object):
     API_SERVER = None
     TASKS_API_URL = None
     RESULTS_API_URL = None
+    RAW_RESULTS_API_URL = None
 
     def __init__(self):
         # Auto Discover API URIs
@@ -43,6 +44,7 @@ class TaskRepo(object):
 
             self.TASKS_API_URL = api_descr['tasks']
             self.RESULTS_API_URL = api_descr['results']
+            self.RAW_RESULTS_API_URL = api_descr['raw_results']
         except Exception as ex:
             six.raise_from(AutoDiscoverFailed('Cannot find API URIs: {0}'.format(api_descr)), ex)
 
@@ -81,16 +83,31 @@ class TaskRepo(object):
         logger.debug('HTTP response {}: {}'.format(response.status_code, response.content))
         response.raise_for_status()
 
-    def submit_result(self, task, result):
+    def submit_result(self, task, result, raw_result):
         payload = {
             'results': ujson.dumps(result),
             'task': task['task_url'],
             'test_run': task['details_url'],
         }
-        logger.debug('HTTP request (POST): {} with params: {}'.format(self.RESULTS_API_URL, payload))
+        logger.debug('HTTP result request (POST): {} with params: {}'.format(self.RESULTS_API_URL, payload))
         response = requests.post(self.RESULTS_API_URL, data=payload)
-        logger.debug('HTTP response {}: {}'.format(response.status_code, response.content))
+        logger.debug('HTTP result response {}: {}'.format(response.status_code, response.content))
         response.raise_for_status()
+        result_url = response.json()
+        result_url = result_url['url']
+
+        for key, value in six.iteritems(raw_result):
+            from pprint import pprint
+            pprint("{}: {}".format(key,value))
+            payload = {
+                'type': key,
+                'data': ujson.dumps(value),
+                'result': result_url,
+            }
+            logger.debug('HTTP raw result {} request (POST): {}'.format(key, self.RAW_RESULTS_API_URL))
+            response = requests.post(self.RAW_RESULTS_API_URL, data=payload)
+            logger.debug('HTTP raw result response {}: <full dump skipped>'.format(response.status_code))
+            response.raise_for_status()
 
 
 class Task(dict):
@@ -123,8 +140,8 @@ class Task(dict):
     def release(self):
         self.repo.release(self)
 
-    def save_result(self, result):
-        self.repo.submit_result(self, result)
+    def save_result(self, result, raw_result):
+        self.repo.submit_result(self, result, raw_result)
 
 
 class TaskQueueWorker(object):
@@ -189,7 +206,7 @@ class TaskQueueWorker(object):
         simple_test.run()
         if simple_test.ok:
             logger.debug('Saving result for task #{}...'.format(task.id))
-            task.save_result(simple_test.result)
+            task.save_result(simple_test.result, simple_test.raw_result)
             logger.info('Saved result for task #{}'.format(task.id))
         else:
             logger.warning('Test execution did not complete successfully')
