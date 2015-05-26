@@ -7,6 +7,7 @@ import re
 import six
 
 from . import Action
+from common.utils import camel2snake
 
 logger = logging.getLogger(__name__)
 
@@ -107,5 +108,19 @@ class ProcessResponses(Action):
 
         for metric, value in six.iteritems(self.result['backend_metrics']):
             self.result['backend_metrics'][metric] = self._calculate_stats(value)
+
+        self.result['phantomas_metrics'] = {}
+        phantomas_metrics = [
+            'cssCount', 'imageCount', 'jsCount', 'htmlCount', 'videoCount', 'otherCount',
+            'contentLength', 'bodySize', 'bodyHTMLSize',
+            'cssSize', 'imageSize', 'jsSize', 'htmlSize', 'videoSize', 'otherSize',
+            'ajaxRequests',
+            'DOMqueries', 'DOMinserts', 'DOMelementsCount', 'DOMelementMaxDepth', ]
+        for in_name in phantomas_metrics:
+            out_name = camel2snake(in_name) if not in_name.startswith('DOM') \
+                else camel2snake(in_name[:3] + in_name[3].upper() + in_name[4:])
+            self.result['phantomas_metrics'][out_name] = self._calculate_stats(
+                [x['metrics'][in_name] for x in self.params['results']['run_phantomas']]
+            )
 
         self.status = self.COMPLETED

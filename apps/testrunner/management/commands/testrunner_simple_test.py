@@ -19,7 +19,7 @@ class Command(BaseCommand):
             'app_commit': 'dev',
             'config_commit': 'dev',
             'url': 'http://muppet.synth1.wikia-dev.com/wiki/Special:Version',
-            'retries': 1
+            'retries': 2
         })
         test_run = SimpleTestSuite(task)
         test_run.run()
