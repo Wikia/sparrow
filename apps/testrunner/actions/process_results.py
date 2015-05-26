@@ -117,10 +117,12 @@ class ProcessResponses(Action):
             'ajaxRequests',
             'DOMqueries', 'DOMinserts', 'DOMelementsCount', 'DOMelementMaxDepth', ]
         for in_name in phantomas_metrics:
-            out_name = camel2snake(in_name) if not in_name.startswith('DOM') \
-                else camel2snake(in_name[:3] + in_name[3].upper() + in_name[4:])
+            if in_name.startswith('DOM'):
+                out_name = camel2snake(in_name[:3] + in_name[3].upper() + in_name[4:])
+            else:
+                out_name = camel2snake(in_name)
             self.result['phantomas_metrics'][out_name] = self._calculate_stats(
-                [x['metrics'][in_name] for x in self.params['results']['run_phantomas']]
+                [x['metrics'][in_name] for x in self.params['results']['phantomas_test']]
             )
 
         self.status = self.COMPLETED
