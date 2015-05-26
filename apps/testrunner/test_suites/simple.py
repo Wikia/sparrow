@@ -80,5 +80,6 @@ class SimpleTestSuite(Action):
             raise RuntimeError('There was an error during data processing')
 
         self.result = processor.result
+        self.raw_result = processor.raw_result
         self.status = self.COMPLETED
         logger.info('Finished execution of task #{}'.format(task_id))

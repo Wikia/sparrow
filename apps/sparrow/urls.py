@@ -7,12 +7,14 @@ from rest_framework import routers
 
 from test_runs.views import TestRunViewSet
 from results.views import TestResultViewSet
+from results.views import TestRawResultViewSet
 from tasks.views import TaskViewSet
 
 
 router = routers.DefaultRouter()
 router.register(r'test_runs', TestRunViewSet)
 router.register(r'results', TestResultViewSet)
+router.register(r'raw_results', TestRawResultViewSet)
 router.register(r'tasks', TaskViewSet)
 
 urlpatterns = [

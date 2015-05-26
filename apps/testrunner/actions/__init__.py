@@ -18,6 +18,7 @@ class Action(object):
         self.params.update(kwargs)
 
         self.result = {}
+        self.raw_result = {}
 
         self.validate_params()
 

@@ -18,6 +18,7 @@ class ProcessResponses(Action):
 
     __PROFILER_REGEXP = re.compile(r'^\s*([\d\.]+\%)\s+([\d\.]+)\s+(\d+)\s+\-\s+([^\s].*[^\s])\s*$')
     __MEMCACHE_REGEXP = re.compile(r'MWMemcached::get.*!(HIT|MISS|DUPE)')
+    __QUERY_REGEXP = re.compile(r'^\s*query(?:-m)?:\s*(.*)\s*$')
 
     def _parse_backend_metrics(self, raw_data):
         metrics = {
@@ -29,6 +30,9 @@ class ProcessResponses(Action):
             'memc_misses': 0,
             'memc_hits': 0,
             'memc_dupes': 0
+        }
+        raw_metrics = {
+            'queries': [],
         }
 
         for line in raw_data.splitlines():
@@ -53,7 +57,7 @@ class ProcessResponses(Action):
                 elif name == 'MWMemcached::get':
                     metrics['memc_time'] += time
                 else:
-                    match = re.match(self.__MEMCACHE_REGEXP, name)
+                    match = self.__MEMCACHE_REGEXP.match(name)
 
                     if match is not None:
                         memc_type = match.group(1)
@@ -63,7 +67,20 @@ class ProcessResponses(Action):
                             metrics['memc_misses'] += count
                         elif memc_type == 'DUPE':
                             metrics['memc_dupes'] += count
-        return metrics
+
+                    match = self.__QUERY_REGEXP.match(name)
+
+                    if match is not None:
+                        raw_metrics['queries'].append({
+                            'statement': match.group(1),
+                            'count': count,
+                            'time': time,
+                        })
+
+        return {
+            'metrics': metrics,
+            'raw': raw_metrics,
+        }
 
     @staticmethod
     def _calculate_stats(values):
@@ -90,6 +107,7 @@ class ProcessResponses(Action):
         self.result['response_time'] = self._calculate_stats(response_times)
         self.result['backend_metrics'] = {}
         self.result['selenium'] = self.params['results']['selenium']
+        self.raw_result = {'backend_metrics': [], }
 
         for response in self.params['results']['mw_profiler_get']:
             start_pos = response.text.rindex('<!--')
@@ -99,8 +117,9 @@ class ProcessResponses(Action):
                 logger.warn('Cannot find backend performance metrics')
                 continue
 
-            parsed_metrics = self._parse_backend_metrics(response.text[start_pos+4:end_pos])
-            for metric, value in six.iteritems(parsed_metrics):
+            metrics = self._parse_backend_metrics(response.text[start_pos+4:end_pos])
+            self.raw_result['backend_metrics'].append(metrics['raw'])
+            for metric, value in six.iteritems(metrics['metrics']):
                 if metric in self.result['backend_metrics']:
                     self.result['backend_metrics'][metric].append(value)
                 else:
