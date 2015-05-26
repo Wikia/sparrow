@@ -57,7 +57,7 @@ django-rest-swagger==0.3.0
 
 # Support for JSON in database models
 # https://bitbucket.org/schinckel/django-jsonfield/
-jsonfield==1.0.3
+-e hg+https://bitbucket.org/schinckel/django-jsonfield@default#egg=django-jsonfield
 
 # Paramiko SSH client
 paramiko==1.15.2

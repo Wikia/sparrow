@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from django.db import models
 import jsonfield
 
-
 class TestResult(models.Model):
     id = models.AutoField(primary_key=True)
     test_run = models.ForeignKey('test_runs.TestRun', related_name='results')

@@ -14,13 +14,26 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name='TestRawResult',
+            fields=[
+                ('id', models.AutoField(serialize=False, primary_key=True)),
+                ('source', models.CharField(max_length=100)),
+                ('data', jsonfield.fields.JSONField(default={})),
+            ],
+        ),
+        migrations.CreateModel(
             name='TestResult',
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
+                ('id', models.AutoField(serialize=False, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('results', jsonfield.fields.JSONField(default={})),
-                ('task', models.ForeignKey(related_name='results', to='tasks.Task')),
-                ('test_run', models.ForeignKey(related_name='results', to='test_runs.TestRun')),
+                ('task', models.ForeignKey(to='tasks.Task', related_name='results')),
+                ('test_run', models.ForeignKey(to='test_runs.TestRun', related_name='results')),
             ],
+        ),
+        migrations.AddField(
+            model_name='testrawresult',
+            name='result',
+            field=models.ForeignKey(to='results.TestResult', related_name='raw_results'),
         ),
     ]
