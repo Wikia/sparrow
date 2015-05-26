@@ -15,26 +15,20 @@ class SeleniumTimer(object):
         self.start_timestamp = self.driver.execute_script("return new Date().getTime()")
 
     def mark_measurement_point(self, url):
-        navigation_start = self.driver.execute_script("return window.performance.timing.navigationStart")
-        response_start = self.driver.execute_script("return window.performance.timing.responseStart")
-        response_end = self.driver.execute_script("return window.performance.timing.responseEnd")
-        dom_interactive = self.driver.execute_script("return window.performance.timing.domInteractive")
-        dom_complete = self.driver.execute_script("return window.performance.timing.domComplete")
-        dom_content_loaded_event_end = self.driver.execute_script("return window.performance.timing.domContentLoadedEventEnd")
-        load_event_end = self.driver.execute_script("return window.performance.timing.loadEventEnd")
+        timing = self.driver.execute_script("return window.performance.timing")
 
         self.measurements.append(dict(
             url = url,
-            backend_time = response_start - navigation_start,
-            frontendTime = load_event_end - response_start,
-            totalLoadTime = load_event_end - navigation_start,
-            response_receiving_time = response_end - response_start,
-            interactive_time = dom_interactive - navigation_start,
-            dom_complete_time = dom_complete - navigation_start,
-            dom_content_loaded_time = dom_content_loaded_event_end - navigation_start
+            backend_time = timing['responseStart'] - timing['navigationStart'],
+            frontendTime = timing['loadEventEnd'] - timing['responseStart'],
+            totalLoadTime = timing['loadEventEnd'] - timing['navigationStart'],
+            response_receiving_time = timing['responseEnd'] - timing['responseStart'],
+            interactive_time = timing['domInteractive'] - timing['navigationStart'],
+            dom_complete_time = timing['domComplete'] - timing['navigationStart'],
+            dom_content_loaded_time = timing['domContentLoadedEventEnd'] - timing['navigationStart']
         ))
 
-        self.total_load_time = load_event_end - self.start_timestamp
+        self.total_load_time = timing['loadEventEnd'] - self.start_timestamp
 
     def get_result(self):
         if len(self.measurements) == 0:
