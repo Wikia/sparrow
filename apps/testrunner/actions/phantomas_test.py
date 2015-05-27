@@ -22,20 +22,25 @@ class PhantomasTest(Action):
 
     def run(self):
         try:
+            num_runs = self.params['retries']
             phantomas_runner = phantomas.Phantomas(
                 url=self.params['url'],
-                runs=self.params['retries']
+                runs=num_runs
             )
             phantomas_result = phantomas_runner.run()
-            if hasattr(phantomas_result,'_runs'):
-                all_runs = phantomas_result._runs
-            else:
+            if num_runs == 1:
                 all_runs = [phantomas_result]
+            else:
+                all_runs = phantomas_result.runs
+
             self.result[self._RESULT_NAME].extend([
                 {
-                    'generator': single_run._generator,
-                    'metrics': single_run._metrics,
-                    'offenders': single_run._offenders
+                    'generator': single_run.get_generator(),
+                    'metrics': single_run.get_metrics(),
+                    'offenders': {
+                        metric: single_run.get_offenders(metric)
+                        for metric in single_run.get_metrics()
+                    }
                 }
                 for single_run in all_runs
             ])
