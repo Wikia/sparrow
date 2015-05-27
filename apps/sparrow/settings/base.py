@@ -206,3 +206,5 @@ SPARROW_TEST_RUNNER = {
     ],
     'api_server': get_env_var('SPARROW_API_URI'),
 }
+
+CRHOMEDRIVER_PATH = '/usr/lib/chromium-browser/chromedriver'

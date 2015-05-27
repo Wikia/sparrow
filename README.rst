@@ -39,7 +39,7 @@ Install development requirements with::
 
 Install additional dependencies::
 
-    apt-get install chromium-chromedriver
+    apt-get install chromium-chromedriver #(for Windows or OSX go to https://sites.google.com/a/chromium.org/chromedriver/downloads)
 
 Setting Environment Variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
