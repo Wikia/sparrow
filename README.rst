@@ -37,6 +37,12 @@ Install development requirements with::
 
     pip install -r requirements/local.txt
 
+
+Install dependencies:
+
+    apt-get install phantomjs
+    npm install -g phantomas
+
 Setting Environment Variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
