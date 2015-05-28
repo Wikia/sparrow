@@ -22,7 +22,6 @@ class SimpleTestSuite(object):
         self.TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
 
     def run(self, task_id, retries, **kwargs):
-        from pudb import set_trace; set_trace()
         logger.info('Started execution of task #{} (x{})'.format(task_id, retries))
         logger.debug('params = ' + ujson.dumps(kwargs))
 
@@ -36,13 +35,6 @@ class SimpleTestSuite(object):
                     'config': kwargs['config_commit']
                 }
             ) |
-                # group(
-                #      HttpGet().si(url=kwargs['url']) for _ in range(retries)
-                # ),
-                # |
-                # group(
-                #     MWProfilerGet().si(url=kwargs['url']) for _ in range()
-                # ) |
             HttpGet().si(url=kwargs['url'], retries=retries) |
             MWProfilerGet().si(url=kwargs['url'], retries=retries) |
             ProcessResponses().s()
