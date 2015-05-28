@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from . import Action
+from celery.task import Task
+
 from testrunner.ssh import SSHConnection
 
 
-class Deploy(Action):
+class Deploy(Task):
     REQUIRED_PARAMS = (
         'deploy_host',
         'app',

@@ -5,17 +5,12 @@ import numpy
 import logging
 import re
 import six
-
-from . import Action
+from celery.task import Task
 
 logger = logging.getLogger(__name__)
 
 
-class ProcessResponses(Action):
-    REQUIRED_PARAMS = (
-        'results',
-    )
-
+class ProcessResponses(Task):
     __PROFILER_REGEXP = re.compile(r'^\s*([\d\.]+\%)\s+([\d\.]+)\s+(\d+)\s+\-\s+([^\s].*[^\s])\s*$')
     __MEMCACHE_REGEXP = re.compile(r'MWMemcached::get.*!(HIT|MISS|DUPE)')
     __QUERY_REGEXP = re.compile(r'^\s*query(?:-m)?:\s*(.*)\s*$')
@@ -103,10 +98,11 @@ class ProcessResponses(Action):
         response_times = [
             float(response.headers['X-Backend-Response-Time']) for response in self.params['results']['http_get']
         ]
-
-        self.result['response_time'] = self._calculate_stats(response_times)
-        self.result['backend_metrics'] = {}
-        self.raw_result = {'backend_metrics': [], }
+        result = {
+            'response_time': self._calculate_stats(response_times),
+            'backend_metrics': {},
+        }
+        raw_result = {'backend_metrics': [], }
 
         for response in self.params['results']['mw_profiler_get']:
             start_pos = response.text.rindex('<!--')
@@ -117,14 +113,14 @@ class ProcessResponses(Action):
                 continue
 
             metrics = self._parse_backend_metrics(response.text[start_pos+4:end_pos])
-            self.raw_result['backend_metrics'].append(metrics['raw'])
+            raw_result['backend_metrics'].append(metrics['raw'])
             for metric, value in six.iteritems(metrics['metrics']):
                 if metric in self.result['backend_metrics']:
-                    self.result['backend_metrics'][metric].append(value)
+                    result['backend_metrics'][metric].append(value)
                 else:
-                    self.result['backend_metrics'][metric] = [value, ]
+                    result['backend_metrics'][metric] = [value, ]
 
         for metric, value in six.iteritems(self.result['backend_metrics']):
-            self.result['backend_metrics'][metric] = self._calculate_stats(value)
+            result['backend_metrics'][metric] = self._calculate_stats(value)
 
-        self.status = self.COMPLETED
+        return result

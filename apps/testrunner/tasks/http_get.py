@@ -3,28 +3,16 @@ from __future__ import unicode_literals
 
 import logging
 import requests
+from celery.task import Task
 
-from . import Action
-from common.utils import camel2snake
 
 logger = logging.getLogger(__name__)
 
 
-class HttpGet(Action):
-    REQUIRED_PARAMS = (
-        'url',
-        'retries',
-    )
-    _RESULT_NAME = None
-
-    def __init__(self, *args, **kwargs):
-        super(HttpGet, self).__init__(*args, **kwargs)
-
-        self._RESULT_NAME = camel2snake(self.__class__.__name__)
-        self.result[self._RESULT_NAME] = []
-
+class HttpGet(Task):
     def run(self):
         query_params = {}
+        result = []
 
         if 'params' in self.params:
             query_params = self.params['params']
@@ -42,16 +30,13 @@ class HttpGet(Action):
                 logger.debug('HTTP #{0} response {1}: {2}'.format(retry, response.status_code, response.content))
                 continue
 
-            self.result[self._RESULT_NAME].append(response)
+            result.append(response)
 
-        if len(self.result[self._RESULT_NAME]):
-            self.status = self.COMPLETED
-        else:
-            self.status = self.FAILED
+        return result
 
 
 class MWProfilerGet(HttpGet):
-    def __init__(self, *args, **kwargs):
-        super(MWProfilerGet, self).__init__(*args, **kwargs)
+    def run(self):
+        self.params['forceprofile'] = 1
 
-        self.params['params'] = {'forceprofile': 1}
+        return super(MWProfilerGet, self).run()
