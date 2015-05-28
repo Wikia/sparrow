@@ -131,7 +131,7 @@ INSTALLED_APPS = (
     'testrunner',
 )
 
-## Django REST Framework Settings
+# Django REST Framework Settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
@@ -139,6 +139,10 @@ REST_FRAMEWORK = {
 }
 
 ACCOUNT_ACTIVATION_DAYS = 7
+
+# Celery Settings
+BROKER_URL = get_env_var('SPARROW_CELERY_BROKER_URL')
+CELERY_ACCEPT_CONTENT = ['json']
 
 # AUTH_USER_MODEL = 'path.to.UserModel'
 
