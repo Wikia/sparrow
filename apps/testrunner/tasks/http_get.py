@@ -1,42 +1,45 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import logging
+from celery.utils.log import get_task_logger
 import requests
-from celery.task import Task
+
+from testrunner import app as celery_app
+from common.utils import camel2snake
 
 
-logger = logging.getLogger(__name__)
+logger = get_task_logger(__name__)
 
 
-class HttpGet(Task):
-    def run(self):
-        query_params = {}
+class HttpGet(celery_app.Task):
+    def run(self, url, retries=1, query_params=None):
         result = []
 
-        if 'params' in self.params:
-            query_params = self.params['params']
-
-        for retry in range(1, self.params['retries']+1):
-            logger.info('HTTP request #{0} (GET): {1} with params={2}'.format(retry, self.params['url'], query_params))
-            response = requests.get(self.params['url'], params=query_params)
+        for turn in range(retries):
+            logger.info('HTTP request #{0} (GET): {1} with params={2}'.format(turn, url, query_params))
+            response = requests.get(url, params=query_params)
             if response.ok:
                 logger.debug(
-                    'HTTP #{0} response {1}: <full dump skipped> ({2} bytes)'.format(
-                        retry, response.status_code, len(response.content)
+                    'HTTP response #{0} {1}: <full dump skipped> ({2} bytes)'.format(
+                        turn, response.status_code, len(response.content)
                     )
                 )
             else:
-                logger.debug('HTTP #{0} response {1}: {2}'.format(retry, response.status_code, response.content))
-                continue
+                logger.debug('HTTP response #{0} {1}: {2}'.format(turn, response.status_code, response.content))
 
-            result.append(response)
+            result.append({
+                'content': str(response.content),
+                'headers': dict(response.headers),
+            })
 
-        return result
-
+        key = camel2snake(self.__class__.__name__)
+        return {key: result, }
 
 class MWProfilerGet(HttpGet):
-    def run(self):
-        self.params['forceprofile'] = 1
+    def run(self, url, retries=1, query_params=None):
+        if query_params is None:
+            query_params = {}
 
-        return super(MWProfilerGet, self).run()
+        query_params['forceprofile'] = 1
+
+        return super(MWProfilerGet, self).run(url, retries, query_params)

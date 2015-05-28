@@ -1,49 +1,37 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from celery.task import Task
-
+from testrunner import app as celery_app
 from testrunner.ssh import SSHConnection
 
 
-class Deploy(Task):
-    REQUIRED_PARAMS = (
-        'deploy_host',
-        'app',
-        'env',
-        'repos',
-    )
-
-    def run(self):
-        self.ssh_connection = SSHConnection(self.params['deploy_host'])
+class Deploy(celery_app.Task):
+    def run(self, deploy_host, app, env, repos):
         try:
-            self.run_prep()
-            self.run_push()
-            self.status = self.COMPLETED
-        except Exception as e:
-            self.status = self.FAILED
-            raise e
+            self.ssh_connection = SSHConnection(deploy_host)
+            self.run_prep(app, env, repos)
+            self.run_push(app, env)
         finally:
             self.ssh_connection.close()
 
-    def run_prep(self):
+    def run_prep(self, app, env, repos):
         repo_spec = ' '.join([
             '-r {repo_name}@{repo_commit}'.format(repo_name=repo_name, repo_commit=repo_commit)
-            for repo_name, repo_commit in self.params['repos'].items()
+            for repo_name, repo_commit in repos.items()
         ])
 
         cmd = 'dt --boring -y prep -a {app} -e {env} {repo_spec}'.format(
-            app=self.params['app'],
-            env=self.params['env'],
+            app=app,
+            env=env,
             repo_spec=repo_spec
         )
 
         self.run_remote_command(cmd)
 
-    def run_push(self):
+    def run_push(self, app, env):
         cmd = 'dt --boring -y push -a {app} -e {env}'.format(
-            app=self.params['app'],
-            env=self.params['env']
+            app=app,
+            env=env
         )
 
         self.run_remote_command(cmd)

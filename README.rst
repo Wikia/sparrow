@@ -69,11 +69,9 @@ Here is a list of the required environment variables:
 
 * SPARROW_SECRET_KEY
 
-The following environment variables are required for test runner:
+The following environment variables are required for Celery (pre-configured for Redis):
 
-* SPARROW_RUNNER_DEPLOY_HOST
-
-* SPARROW_RUNNER_TARGET_HOST
+* SPARROW_CELERY_BROKER_URL
 
 If you are using virtualenvwrapper, begin editing the ``postactivate`` script as follows::
 
