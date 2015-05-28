@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from django.conf import settings
 import ujson
 from celery import group
-from celery import chord
 from celery.utils.log import get_task_logger
 
 from testrunner.tasks.deploy import Deploy
@@ -35,8 +34,10 @@ class SimpleTestSuite(object):
                     'config': kwargs['config_commit']
                 }
             ) |
-            HttpGet().si(url=kwargs['url'], retries=retries) |
-            MWProfilerGet().si(url=kwargs['url'], retries=retries) |
+            group(
+                HttpGet().si(url=kwargs['url'], retries=retries),
+                MWProfilerGet().si(url=kwargs['url'], retries=retries)
+            ) |
             ProcessResponses().s()
         )
 

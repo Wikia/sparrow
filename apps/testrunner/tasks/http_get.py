@@ -15,7 +15,7 @@ class HttpGet(celery_app.Task):
     def run(self, url, retries=1, query_params=None):
         result = []
 
-        for turn in range(retries):
+        for turn in range(1, retries+1):
             logger.info('HTTP request #{0} (GET): {1} with params={2}'.format(turn, url, query_params))
             response = requests.get(url, params=query_params)
             if response.ok:
@@ -42,4 +42,4 @@ class MWProfilerGet(HttpGet):
 
         query_params['forceprofile'] = 1
 
-        return super(MWProfilerGet, self).run(url, retries, query_params)
+        return HttpGet.run(self, url, retries, query_params)
