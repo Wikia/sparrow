@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.utils.translation import ugettext_lazy as _
+from django.core.urlresolvers import reverse
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
@@ -28,6 +29,10 @@ class TaskViewSet(viewsets.ModelViewSet):
     def run(self, request, pk=None):
         task = self.get_object()
 
-        task.run()
+        task.run(
+            result_uri=request.build_absolute_uri(reverse('testresult-list')),
+            task_uri=request.build_absolute_uri(reverse('task-detail', args={pk: pk, })),
+            test_run_uri=request.build_absolute_uri(reverse('testrun-detail', args={pk: task.test_run_id, })),
+        )
 
         return Response(status=status.HTTP_202_ACCEPTED)

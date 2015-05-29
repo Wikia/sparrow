@@ -62,15 +62,17 @@ class Task(models.Model):
             task_status_changed.send(self.__class__, instance=self)
             self.__original_status = self.status
 
-    def run(self):
+    def run(self, result_uri, task_uri, test_run_uri):
         test_run = self.test_run
         suite = SimpleTestSuite()
         result = suite.run(
-            task_id=self.id,
             retries=10,
             url=test_run.test_run_uri,
             app_commit=test_run.main_revision,
-            config_commit=test_run.secondary_revision
+            config_commit=test_run.secondary_revision,
+            result_uri=result_uri,
+            task_uri=task_uri,
+            test_run_uri=test_run_uri
         )
         self.job_id = result.id
         self.status = TaskStatus.from_celery_status(result.status)

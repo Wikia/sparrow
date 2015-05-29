@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 import numpy
 import re
 import six
+import requests
+import ujson
 from celery.utils.log import get_task_logger
 
 from testrunner import app as celery_app
@@ -93,35 +95,48 @@ class ProcessResponses(celery_app.Task):
             'highest': float(numpy.max(values)),
         }
 
-    def run(self, data):
-        logger.info('Starting processing results:')
+    @staticmethod
+    def post_results(uri, test_run_uri, task_uri, results):
+        logger.info('Saving results')
+        payload = {
+            'results': ujson.dumps(results),
+            'task': task_uri,
+            'test_run': test_run_uri,
+        }
+        response = requests.post(uri, payload)
+        logger.debug('Response (code: {0}): {1}'.format(response.status_code, response.content))
+        response.raise_for_status()
 
-        result = {}
-        if 'http_get' in data:
-            response_times = [
-                float(response['headers']['x-backend-response-time']) for response in data['http_get']
-            ]
-            result['response_time'] = self._calculate_stats(response_times)
+    def run(self, data, test_run_uri, task_uri, result_uri):
+        logger.info('Starting processing results...')
 
-        if 'mw_profiler_get' in data:
-            result['backend_metrics'] = {}
-            for response in data['mw_profiler_get']:
-                start_pos = response.text.rindex('<!--')
-                end_pos = response.text.rindex('-->')
+        results = {}
+        for item in data:
+            if 'http_get' in item:
+                response_times = [
+                    float(response['headers']['x-backend-response-time']) for response in item['http_get']
+                ]
+                results['response_time'] = self._calculate_stats(response_times)
 
-                if start_pos < 0 or end_pos < 0:
-                    logger.warn('Cannot find backend performance metrics')
-                    continue
+            if 'mw_profiler_get' in item:
+                results['backend_metrics'] = {}
+                for response in item['mw_profiler_get']:
+                    start_pos = response['content'].rindex('<!--')
+                    end_pos = response['content'].rindex('-->')
 
-                metrics = self._parse_backend_metrics(response.text[start_pos+4:end_pos])
-                # raw_result['backend_metrics'].append(metrics['raw'])
-                for metric, value in six.iteritems(metrics['metrics']):
-                    if metric in self.result['backend_metrics']:
-                        result['backend_metrics'][metric].append(value)
-                    else:
-                        result['backend_metrics'][metric] = [value, ]
+                    if start_pos < 0 or end_pos < 0:
+                        logger.warn('Cannot find backend performance metrics')
+                        continue
 
-            for metric, value in six.iteritems(data['backend_metrics']):
-                result['backend_metrics'][metric] = self._calculate_stats(value)
+                    metrics = self._parse_backend_metrics(response['content'][start_pos+4:end_pos])
+                    # raw_result['backend_metrics'].append(metrics['raw'])
+                    for metric, value in six.iteritems(metrics['metrics']):
+                        if metric in results['backend_metrics']:
+                            results['backend_metrics'][metric].append(value)
+                        else:
+                            results['backend_metrics'][metric] = [value, ]
 
-        return result
+                for metric, value in six.iteritems(results['backend_metrics']):
+                    results['backend_metrics'][metric] = self._calculate_stats(value)
+
+        self.post_results(result_uri, test_run_uri, task_uri, results)

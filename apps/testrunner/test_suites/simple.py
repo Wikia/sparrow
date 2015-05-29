@@ -20,8 +20,8 @@ class SimpleTestSuite(object):
         self.DEPLOY_HOST = test_runner_config['deploy_host']['hostname']
         self.TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
 
-    def run(self, task_id, retries, **kwargs):
-        logger.info('Started execution of task #{} (x{})'.format(task_id, retries))
+    def run(self, retries, **kwargs):
+        logger.info('Started execution of task #{} (x{})'.format(kwargs['task_uri'], retries))
         logger.debug('params = ' + ujson.dumps(kwargs))
 
         tasks = (
@@ -38,11 +38,15 @@ class SimpleTestSuite(object):
                 HttpGet().si(url=kwargs['url'], retries=retries),
                 MWProfilerGet().si(url=kwargs['url'], retries=retries)
             ) |
-            ProcessResponses().s()
+            ProcessResponses().s(
+                result_uri=kwargs['result_uri'],
+                task_uri=kwargs['task_uri'],
+                test_run_uri=kwargs['test_run_uri']
+            )
         )
 
         result = tasks.delay()
 
-        logger.info('Scheduled execution of task #{0}: {1}'.format(task_id, result.id))
+        logger.info('Scheduled execution of task #{0}: {1}'.format(kwargs['task_uri'], result.id))
 
         return result
