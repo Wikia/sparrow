@@ -10,4 +10,4 @@ from results.models import TestResult
 class TaskSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Task
-        fields = ('id', 'test_run', 'created', 'status', 'results', 'url')
+        fields = ('id', 'test_run', 'created', 'status', 'results', 'url', 'job_id')
