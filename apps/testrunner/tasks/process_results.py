@@ -113,12 +113,16 @@ class ProcessResponses(celery_app.Task):
         results = {}
         for item in data:
             if 'http_get' in item:
+                logger.info('Gathering HTTP response times...')
+
                 response_times = [
                     float(response['headers']['x-backend-response-time']) for response in item['http_get']
                 ]
                 results['response_time'] = self._calculate_stats(response_times)
 
             if 'mw_profiler_get' in item:
+                logger.info('Gathering backend statistics...')
+
                 results['backend_metrics'] = {}
                 for response in item['mw_profiler_get']:
                     start_pos = response['content'].rindex('<!--')
