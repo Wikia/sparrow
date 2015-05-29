@@ -7,7 +7,6 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from tasks.models import Task
 from tasks.models import TaskStatus
 
 

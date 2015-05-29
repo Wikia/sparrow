@@ -43,6 +43,6 @@ class SimpleTestSuite(object):
 
         result = tasks.delay()
 
-        logger.info('Finished execution of task #{}'.format(task_id))
+        logger.info('Scheduled execution of task #{0}: {1}'.format(task_id, result.id))
 
-        return result.get()
+        return result

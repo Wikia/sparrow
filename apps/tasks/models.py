@@ -5,6 +5,7 @@ from django.db import models
 import django.dispatch
 from django.utils.translation import ugettext as _
 from django_enumfield import enum
+import celery.states
 
 from testrunner.test_suites.simple import SimpleTestSuite
 
@@ -25,6 +26,19 @@ class TaskStatus(enum.Enum):
         ERROR: _('Error'),
     }
 
+    @classmethod
+    def from_celery_status(cls, celery_status):
+        if celery_status == celery.states.PENDING:
+            return cls.PENDING
+        if celery_status in (celery.states.RECEIVED, celery.states.STARTED):
+            return cls.IN_PROGRESS
+        if celery_status in celery.states.EXCEPTION_STATES:
+            return cls.ERROR
+        if celery_status == celery.states.SUCCESS:
+            return cls.DONE
+
+        raise ValueError('Unknown status: {0}'.format(celery_status))
+
 
 class Task(models.Model):
     id = models.AutoField(primary_key=True)
@@ -41,7 +55,6 @@ class Task(models.Model):
         self.__original_status = self.status
 
     def save(self, *args, **kwargs):
-        is_new = not self.pk
 
         super(Task, self).save(*args, **kwargs)
 
@@ -49,19 +62,19 @@ class Task(models.Model):
             task_status_changed.send(self.__class__, instance=self)
             self.__original_status = self.status
 
-        # TODO: add more cases (resuming, aborting tasks)
-        if (self.__original_status != self.status or is_new) and self.status == TaskStatus.PENDING:
-            test_run = self.test_run
-            suite = SimpleTestSuite()
-            job_id = suite.run(
-                task_id=self.id,
-                retries=10,
-                url=test_run.test_run_uri,
-                app_commit=test_run.main_revision,
-                config_commit=test_run.secondary_revision
-            )
-            self.job_id = job_id
-            self.save()
+    def run(self):
+        test_run = self.test_run
+        suite = SimpleTestSuite()
+        result = suite.run(
+            task_id=self.id,
+            retries=10,
+            url=test_run.test_run_uri,
+            app_commit=test_run.main_revision,
+            config_commit=test_run.secondary_revision
+        )
+        self.job_id = result.id
+        self.status = TaskStatus.from_celery_status(result.status)
+        self.save()
 
     def __repr__(self):
         return "{0} #{1}".format(self.__class__.__name__, self.id)
