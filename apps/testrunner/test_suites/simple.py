@@ -9,6 +9,7 @@ from celery.utils.log import get_task_logger
 from testrunner.tasks.deploy import Deploy
 from testrunner.tasks.http_get import HttpGet
 from testrunner.tasks.http_get import MWProfilerGet
+from testrunner.tasks.phantomas import PhantomasGet
 from testrunner.tasks.process_results import ProcessResponses
 
 logger = get_task_logger(__name__)
@@ -36,7 +37,8 @@ class SimpleTestSuite(object):
             ) |
             group(
                 HttpGet().si(url=kwargs['url'], retries=retries),
-                MWProfilerGet().si(url=kwargs['url'], retries=retries)
+                MWProfilerGet().si(url=kwargs['url'], retries=retries),
+                PhantomasGet().si(url=kwargs['url'], retries=retries)
             ) |
             ProcessResponses().s(
                 result_uri=kwargs['result_uri'],

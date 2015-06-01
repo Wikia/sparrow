@@ -79,3 +79,6 @@ colorlog==2.6.0
 
 # numerical and statistical library
 numpy==1.9.2
+
+# phantomas
+phantomas==0.2.1

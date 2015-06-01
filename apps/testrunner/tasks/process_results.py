@@ -9,6 +9,7 @@ import ujson
 from celery.utils.log import get_task_logger
 
 from testrunner import app as celery_app
+from common.utils import camel2snake
 
 logger = get_task_logger(__name__)
 
@@ -127,8 +128,7 @@ class ProcessResponses(celery_app.Task):
                     float(response['headers']['x-backend-response-time']) for response in item['http_get']
                 ]
                 results['response_time'] = self._calculate_stats(response_times)
-
-            if 'mw_profiler_get' in item:
+            elif 'mw_profiler_get' in item:
                 logger.info('Gathering backend statistics...')
 
                 results['backend_metrics'] = {}
@@ -150,5 +150,22 @@ class ProcessResponses(celery_app.Task):
 
                 for metric, value in six.iteritems(results['backend_metrics']):
                     results['backend_metrics'][metric] = self._calculate_stats(value)
+            elif 'phantomas' in item:
+                results['phantomas_metrics'] = {}
+                phantomas_metrics = [
+                    'cssCount', 'imageCount', 'jsCount', 'htmlCount', 'videoCount', 'otherCount',
+                    'contentLength', 'bodySize', 'bodyHTMLSize',
+                    'cssSize', 'imageSize', 'jsSize', 'htmlSize', 'videoSize', 'otherSize',
+                    'ajaxRequests',
+                    'DOMqueries', 'DOMinserts', 'DOMelementsCount', 'DOMelementMaxDepth', ]
+                for in_name in phantomas_metrics:
+                    if in_name.startswith('DOM'):
+                        out_name = camel2snake(in_name[:3] + in_name[3].upper() + in_name[4:])
+                    else:
+                        out_name = camel2snake(in_name)
+                    results['phantomas_metrics'][out_name] = self._calculate_stats(
+                        [x['metrics'][in_name] for x in self.params['results']['phantomas_get']]
+                    )
 
         self.post_results(result_uri, test_run_uri, task_uri, results)
+
