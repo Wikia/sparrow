@@ -150,7 +150,7 @@ class ProcessResponses(celery_app.Task):
 
                 for metric, value in six.iteritems(results['backend_metrics']):
                     results['backend_metrics'][metric] = self._calculate_stats(value)
-            elif 'phantomas' in item:
+            elif 'phantomas_get' in item:
                 results['phantomas_metrics'] = {}
                 phantomas_metrics = [
                     'cssCount', 'imageCount', 'jsCount', 'htmlCount', 'videoCount', 'otherCount',
@@ -164,7 +164,7 @@ class ProcessResponses(celery_app.Task):
                     else:
                         out_name = camel2snake(in_name)
                     results['phantomas_metrics'][out_name] = self._calculate_stats(
-                        [x['metrics'][in_name] for x in self.params['results']['phantomas_get']]
+                        [x['metrics'][in_name] for x in item['phantomas_get']]
                     )
 
         self.post_results(result_uri, test_run_uri, task_uri, results)
