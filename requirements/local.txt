@@ -23,6 +23,7 @@ coverage==4.0a5
 
 # For easy fixtures and test creation
 model_mommy==1.2.4
+mock==1.0.1
 
 # For jenkins integration
 django-jenkins==0.17.0

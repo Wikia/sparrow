@@ -11,8 +11,9 @@ class SeleniumTimer(object):
         self.driver = driver
         self.measurements = []
 
-    def start(self):
+    def start(self, test_name):
         self.start_timestamp = self.driver.execute_script("return new Date().getTime()")
+        self.test_name = test_name
 
     def mark_measurement_point(self, url):
         timing = self.driver.execute_script("return window.performance.timing")
@@ -20,8 +21,8 @@ class SeleniumTimer(object):
         self.measurements.append(dict(
             url = url,
             backend_time = timing['responseStart'] - timing['navigationStart'],
-            frontendTime = timing['loadEventEnd'] - timing['responseStart'],
-            totalLoadTime = timing['loadEventEnd'] - timing['navigationStart'],
+            frontend_time = timing['loadEventEnd'] - timing['responseStart'],
+            total_load_time = timing['loadEventEnd'] - timing['navigationStart'],
             response_receiving_time = timing['responseEnd'] - timing['responseStart'],
             interactive_time = timing['domInteractive'] - timing['navigationStart'],
             dom_complete_time = timing['domComplete'] - timing['navigationStart'],
@@ -36,5 +37,6 @@ class SeleniumTimer(object):
 
         return dict(
             total_load_time = self.total_load_time,
-            measurements = self.measurements
+            test_name = self.test_name,
+            steps = self.measurements
         )

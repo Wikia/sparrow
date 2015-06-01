@@ -11,7 +11,7 @@ from testrunner.actions.http_get import HttpGet
 from testrunner.actions.http_get import MWProfilerGet
 from testrunner.actions.process_results import ProcessResponses
 from testrunner.actions.run_selenium_test import RunSeleniumTest
-from testrunner.test_suites.selenium_tests.main_page_selenium_test import MainPageSeleniumTest
+from common import media_wiki_tools
 
 logger = logging.getLogger(__name__)
 
@@ -23,14 +23,19 @@ class SimpleTestSuite(Action):
         self.DEPLOY_HOST = test_runner_config['deploy_host']['hostname']
         self.TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
 
-    def run_selenium_tests(self):
+    def run_selenium_tests(self, url):
         logger.info('Running selenium task...')
-        simple_selenium_test = MainPageSeleniumTest()
+        hostname = media_wiki_tools.get_hostname_from_url(url)
+
         run_selenium_test_action = RunSeleniumTest()
-        run_selenium_test_action.run(simple_selenium_test)
+        run_selenium_test_action.run([
+            RunSeleniumTest.Test(name='enter_page', params={'url' : url}),
+            RunSeleniumTest.Test(name='perftest_oasis_anon_search_pageviews', params={'hostname' : hostname}),
+            RunSeleniumTest.Test(name='perftest_oasis_user_search_pageviews', params={'hostname' : hostname})
+        ])
 
         if not run_selenium_test_action.ok:
-            raise RuntimeError('Could not perform selenium test')
+            raise RuntimeError('Selenium tests failed')
 
         return run_selenium_test_action.result
 
@@ -38,7 +43,6 @@ class SimpleTestSuite(Action):
         task_id = self.params['id']
         logger.info('Started execution of task #{}'.format(task_id))
         logger.debug('params = ' + ujson.dumps(self.params))
-
         logger.info('Running deploy task...')
         deploy_task = Deploy(
             deploy_host=self.DEPLOY_HOST,
@@ -60,7 +64,7 @@ class SimpleTestSuite(Action):
         if not http_get_task.ok:
             raise RuntimeError('Could not perform HTTP request to application')
 
-        selenium_result = self.run_selenium_tests()
+        selenium_result = self.run_selenium_tests(self.params['url'])
 
         logger.info('Running MW Profiler task...')
         mw_profiler = MWProfilerGet(url=self.params['url'], retries=self.params['retries'])
