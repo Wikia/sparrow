@@ -99,11 +99,19 @@ class ProcessResponses(celery_app.Task):
     def post_results(uri, test_run_uri, task_uri, results):
         logger.info('Saving results')
         payload = {
-            'results': ujson.dumps(results),
+            'results': results,
             'task': task_uri,
             'test_run': test_run_uri,
         }
-        response = requests.post(uri, payload)
+
+        response = requests.post(
+            uri,
+            data=ujson.dumps(payload),
+            headers={
+                'Content-type': 'application/json',
+                'Accept': 'application/json',
+            }
+        )
         logger.debug('Response (code: {0}): {1}'.format(response.status_code, response.content))
         response.raise_for_status()
 
@@ -125,10 +133,10 @@ class ProcessResponses(celery_app.Task):
 
                 results['backend_metrics'] = {}
                 for response in item['mw_profiler_get']:
-                    start_pos = response['content'].rindex('<!--')
-                    end_pos = response['content'].rindex('-->')
-
-                    if start_pos < 0 or end_pos < 0:
+                    try:
+                        start_pos = response['content'].rindex('<!--')
+                        end_pos = response['content'].rindex('-->')
+                    except ValueError:
                         logger.warn('Cannot find backend performance metrics')
                         continue
 

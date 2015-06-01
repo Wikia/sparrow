@@ -28,7 +28,7 @@ class HttpGet(celery_app.Task):
                 logger.debug('HTTP response #{0} {1}: {2}'.format(turn, response.status_code, response.content))
 
             result.append({
-                'content': str(response.content),
+                'content': response.text,
                 'headers': dict(response.headers),
             })
 
