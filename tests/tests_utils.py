@@ -16,3 +16,5 @@ class TestCamel2Snake(TestCase):
         self.assertEqual(camel2snake('UnderScoreEnd_'), 'under_score_end_')
         self.assertEqual(camel2snake('_BeginUnderScore'), '_begin_under_score')
         self.assertEqual(camel2snake('_BothUnderScore_'), '_both_under_score_')
+        self.assertEqual(camel2snake('DOM_response'), 'dom_response')
+        self.assertEqual(camel2snake('DOMResponse'), 'dom_response')

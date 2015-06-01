@@ -37,9 +37,13 @@ Install development requirements with::
 
     pip install -r requirements/local.txt
 
-Install additional dependencies::
+
+Install dependencies::
 
     apt-get install chromium-chromedriver #(for Windows or OSX go to https://sites.google.com/a/chromium.org/chromedriver/downloads)
+
+    apt-get install phantomjs
+    npm install -g phantomas
 
 Setting Environment Variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

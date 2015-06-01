@@ -44,9 +44,10 @@ class TestResultTestCase(APITestCase):
                     RunSeleniumTest.Test(name='perftest_oasis_anon_search_pageviews', params={'hostname' : hostname}),
                     RunSeleniumTest.Test(name='perftest_oasis_user_search_pageviews', params={'hostname' : hostname})
                 ])
-                self.assertEqual(len(run_selenium_test_action.result), 3)
-                self.assertEqual(run_selenium_test_action.result[0]['total_load_time'], 7)
-                self.assertEqual(run_selenium_test_action.result[0]['steps'][0]['url'], 'http://muppet.wikia.com')
-                self.assertEqual(run_selenium_test_action.result[0]['steps'][0]['backend_time'], 1)
-                self.assertEqual(run_selenium_test_action.result[1]['total_load_time'], 7)
-                self.assertEqual(run_selenium_test_action.result[2]['total_load_time'], 7)
+                result_list = run_selenium_test_action.result['selenium']
+                self.assertEqual(len(result_list), 3)
+                self.assertEqual(result_list[0]['total_load_time'], 7)
+                self.assertEqual(result_list[0]['steps'][0]['url'], 'http://muppet.wikia.com')
+                self.assertEqual(result_list[0]['steps'][0]['backend_time'], 1)
+                self.assertEqual(result_list[1]['total_load_time'], 7)
+                self.assertEqual(result_list[2]['total_load_time'], 7)

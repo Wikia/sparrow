@@ -97,8 +97,6 @@ class TaskRepo(object):
         result_url = result_url['url']
 
         for key, value in six.iteritems(raw_result):
-            from pprint import pprint
-            pprint("{}: {}".format(key,value))
             payload = {
                 'type': key,
                 'data': ujson.dumps(value),

@@ -9,6 +9,7 @@ from testrunner.actions import Action
 from testrunner.actions.deploy import Deploy
 from testrunner.actions.http_get import HttpGet
 from testrunner.actions.http_get import MWProfilerGet
+from testrunner.actions.phantomas_test import PhantomasTest
 from testrunner.actions.process_results import ProcessResponses
 from testrunner.actions.run_selenium_test import RunSeleniumTest
 from common import media_wiki_tools
@@ -73,10 +74,20 @@ class SimpleTestSuite(Action):
         if not http_get_task.ok:
             raise RuntimeError('Could not perform HTTP request to application')
 
+        logger.info('Running phantomas task...')
+        phantomas_run = PhantomasTest(url=self.params['url'], retries=self.params['retries'])
+        phantomas_run.run()
+
+        if not phantomas_run.ok:
+            raise RuntimeError('Could not load app using phantomas')
+
         logger.info('Processing data...')
-        results = dict(http_get_task.result)
+        results = {}
+        results.update(http_get_task.result)
         results.update(mw_profiler.result)
-        results['selenium'] = selenium_result
+        results.update(phantomas_run.result)
+        results.update(selenium_result)
+
         processor = ProcessResponses(results=results)
         processor.run()
 

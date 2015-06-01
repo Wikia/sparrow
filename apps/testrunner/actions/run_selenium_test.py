@@ -36,7 +36,7 @@ class RunSeleniumTest(Action):
 
     def run(self, tests):
 
-        result = []
+        result_list = []
 
         for test in tests:
 
@@ -49,12 +49,12 @@ class RunSeleniumTest(Action):
 
                     self.run_test(test, driver, timer)
 
-                    result.append(timer.get_result())
+                    result_list.append(timer.get_result())
             except:
                 logger.error('Exception caught while running selenium test ' + test.name, exc_info=True)
 
-        if len(result) > 0:
+        if len(result_list) > 0:
             self.status = self.COMPLETED
-            self.result = result
+            self.result = {'selenium' : result_list}
         else:
             self.status = self.FAILED
