@@ -83,6 +83,20 @@ class ProcessResponses(celery_app.Task):
 
     @staticmethod
     def _calculate_stats(values):
+        if len(values) == 0:
+            return {
+                'count': 0,
+                '5th_percentile': 0.0,
+                '50th_percentile': 0.0,
+                '90th_percentile': 0.0,
+                '95th_percentile': 0.0,
+                'std': 0.0,
+                'mean': 0.0,
+                'median': 0.0,
+                'lowest': 0.0,
+                'highest': 0.0,
+            }
+
         return {
             'count': int(len(values)),
             '5th_percentile': float(numpy.percentile(values, 5)),

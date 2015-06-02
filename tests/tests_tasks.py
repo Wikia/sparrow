@@ -62,7 +62,7 @@ class TestResultTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg='Read failed: {0}'.format(response.data))
 
     @mock.patch('testrunner.tasks.deploy.SSHConnection', SSHConnectionMock)
-    @mock.patch('testrunner.tasks.phantomas.phantomas.Phantomas.run')
+    @mock.patch('testrunner.tasks.phantomas_get.phantomas.Phantomas')
     @responses.activate
     @post_response
     def test_run_task(self, phantomas_mock, post_callback):

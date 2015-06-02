@@ -9,7 +9,7 @@ from celery.utils.log import get_task_logger
 from testrunner.tasks.deploy import Deploy
 from testrunner.tasks.http_get import HttpGet
 from testrunner.tasks.http_get import MWProfilerGet
-from testrunner.tasks.phantomas import PhantomasGet
+from testrunner.tasks.phantomas_get import PhantomasGet
 from testrunner.tasks.process_results import ProcessResponses
 
 logger = get_task_logger(__name__)

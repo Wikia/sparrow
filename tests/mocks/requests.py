@@ -13,7 +13,7 @@ def post_response(f):
             api_response = self.client.post(request.url, data=ujson.decode(request.body), headers=request.headers)
             self.response_data = api_response.data
 
-            return api_response.status_code, api_response.headers, api_response.data
+            return api_response.status_code, {}, api_response.content
 
         kwargs['post_callback'] = request_callback
         f(self, *args, **kwargs)
@@ -29,7 +29,7 @@ def put_response(f):
             api_response = self.client.post(request.url, data=ujson.decode(request.body), headers=request.headers)
             self.response_data = api_response.data
 
-            return api_response.status_code, api_response.headers, api_response.data
+            return api_response.status_code, {}, api_response.content
 
         kwargs['put_callback'] = request_callback
         f(self, *args, **kwargs)
@@ -45,7 +45,7 @@ def get_response(f):
             api_response = self.client.get(request.url, data=ujson.decode(request.body), headers=request.headers)
             self.response_data = api_response.data
 
-            return api_response.status_code, api_response.headers, api_response.data
+            return api_response.status_code, {}, api_response.content
 
         kwargs['get_callback'] = request_callback
         f(self, *args, **kwargs)
@@ -61,7 +61,7 @@ def delete_response(f):
             api_response = self.client.delete(request.url, data=ujson.decode(request.body), headers=request.headers)
             self.response_data = api_response.data
 
-            return api_response.status_code, api_response.headers, api_response.data
+            return api_response.status_code, {}, api_response.content
 
         kwargs['delete_callback'] = request_callback
         f(self, *args, **kwargs)
