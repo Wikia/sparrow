@@ -1,17 +1,15 @@
-import time
 import ujson
 
 import requests
-import sys
 import six
+from celery.utils.log import get_task_logger
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 import logging
-from .test_suites.simple import SimpleTestSuite
 
-logger = logging.getLogger(__name__)
+logger = get_task_logger(__name__)
 
 # How many time repeat one test
 _TEST_RUN_RETRIES = 10
@@ -140,71 +138,3 @@ class Task(dict):
 
     def save_result(self, result, raw_result):
         self.repo.submit_result(self, result, raw_result)
-
-
-class TaskQueueWorker(object):
-    """
-    Daemon worker which fetches tasks from the queue, executes them and sends back result data
-    """
-
-    def __init__(self, repo=None):
-        self.repo = repo or TaskRepo()
-
-    def run(self, daemonize=False):
-        logger.info('Started task processor, entering main loop...')
-        while True:
-            work_done = True
-            try:
-                work_done = self.run_one()
-            except KeyboardInterrupt:
-                raise
-            except:
-                logger.warning('Task execution interrupted. Next check in 10 seconds.', exc_info=True)
-
-            if not daemonize:
-                break
-
-            if not work_done: # = was totally idle
-                logger.info('Waiting for 10 seconds to get new task.')
-                time.sleep(10)
-
-    def run_one(self):
-        task = None
-        try:
-            logger.debug('Fetching task from queue...')
-            task = self.repo.acquire()
-
-            if task is not None:
-                task.load_data()
-                self.process_task(task)
-            else:
-                logger.info('No queued task found.')
-                return False
-        except:
-            # In case of any error make sure to release current task but try not to
-            # mess with the original exception so the caller can report it.
-            # @see http://www.ianbicking.org/blog/2007/09/re-raising-exceptions.html
-            exc_info = sys.exc_info()
-
-            try:
-                if task is not None:
-                    logger.debug('Releasing task #{}...'.format(task.id))
-                    task.release()
-                    logger.info('Released task #{}'.format(task.id))
-            except:
-                logger.error('Releasing task #{} failed, it will remain stuck.'.format(task.id))
-
-            six.reraise(exc_info[0], exc_info[1], exc_info[2])
-
-        return True
-
-    def process_task(self, task):
-        logger.info('Processing task #{}...'.format(task.id))
-        simple_test = SimpleTestSuite(retries=_TEST_RUN_RETRIES, **task)
-        simple_test.run()
-        if simple_test.ok:
-            logger.debug('Saving result for task #{}...'.format(task.id))
-            task.save_result(simple_test.result, simple_test.raw_result)
-            logger.info('Saved result for task #{}'.format(task.id))
-        else:
-            logger.warning('Test execution did not complete successfully')

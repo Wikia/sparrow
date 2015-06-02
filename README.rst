@@ -75,11 +75,9 @@ Here is a list of the required environment variables:
 
 * SPARROW_SECRET_KEY
 
-The following environment variables are required for test runner:
+The following environment variables are required for Celery (pre-configured for Redis):
 
-* SPARROW_RUNNER_DEPLOY_HOST
-
-* SPARROW_RUNNER_TARGET_HOST
+* SPARROW_CELERY_BROKER_URL
 
 If you are using virtualenvwrapper, begin editing the ``postactivate`` script as follows::
 
@@ -95,6 +93,9 @@ Set the contents as follows::
     export SPARROW_SECRET_KEY="";
     export DJANGO_SETTINGS_MODULE="sparrow.settings.local";
     export PYTHONPATH="/path/to/sparrow";
+    export SPARROW_CELERY_BROKER_URL="redis://localhost:6379/0";
+    export SPARROW_RUNNER_DEPLOY_HOST="dev-synth1";
+    export SPARROW_RUNNER_TARGET_HOST="dev-synth1";
 
 Setting ``DJANGO_SETTINGS_MODULE`` to ``sparrow.settings.local``,
 is not strictly necessary, but helpful to avoid the need for the

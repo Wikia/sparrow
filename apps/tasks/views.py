@@ -2,17 +2,16 @@
 from __future__ import unicode_literals
 
 from django.utils.translation import ugettext_lazy as _
+from django.core.urlresolvers import reverse
 from rest_framework import viewsets
-from rest_framework.decorators import list_route
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import APIException
 
 
 from .serializers import TaskSerializer
-from .models import Task, TaskStatus
+from .models import Task
 
 
 class PreconditionFailed(APIException):
@@ -26,54 +25,14 @@ class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
 
-    @list_route()
-    def fetch(self, request):
-        """ This method will fetch first task with status PENDING and set it's status to IN_PROGRESS.
-
-        It's purpose is to acquire task for process and set it as being processed so no other
-        task runners can fetch the same tasks multiple times multiple. This implement behaviour
-        similar to queue.
-
-        Args:
-            request (Request): Request data
-
-        Returns:
-            Response: Details about the fetched task
-        """
-        task = self.queryset.filter(status=TaskStatus.PENDING).order_by('id').first()
-
-        if task is None:
-            raise NotFound('No pending tasks found')
-
-        task.status = TaskStatus.IN_PROGRESS
-        task.save()
-        serializer = self.serializer_class(task, context={'request': request})
-
-        return Response(serializer.data)
-
-    @detail_route(methods=['delete'])
-    def lock(self, request, pk=None):
-        """ This method implements releasing lock on task in progress.
-
-        Queue clients needs to be able to return tasks to queue (retry process) on non fatal errors. This method
-        sets status to DONE or ERROR depending on the task result.
-
-        Args:
-            request (Request): Request data
-            pk (int): Id of the task to remove lock from
-        """
+    @detail_route(methods=['post', ])
+    def run(self, request, pk=None):
         task = self.get_object()
 
-        if task.status != TaskStatus.IN_PROGRESS:
-            raise PreconditionFailed('Task has not been fetched yet')
+        task.run(
+            result_uri=request.build_absolute_uri(reverse('testresult-list')),
+            task_uri=request.build_absolute_uri(reverse('task-detail', args=[pk, ])),
+            test_run_uri=request.build_absolute_uri(reverse('testrun-detail', args=[task.test_run_id, ])),
+        )
 
-        if task.results.count() > 0:
-            # assuming test has been executed successfully
-            task.status = TaskStatus.DONE
-        else:
-            task.status = TaskStatus.ERROR
-        task.save()
-
-        serializer = self.serializer_class(task, context={'request': request})
-
-        return Response(serializer.data)
+        return Response(status=status.HTTP_202_ACCEPTED)
