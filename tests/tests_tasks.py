@@ -15,6 +15,7 @@ from tasks.models import TaskStatus
 from tests.mocks.ssh import SSHConnectionMock
 from tests.mocks.requests import post_response
 
+
 @override_settings(CELERY_ALWAYS_EAGER=True)
 class TestResultTestCase(APITestCase):
     def setUp(self):

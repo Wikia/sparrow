@@ -33,5 +33,6 @@ flake8==2.4.1
 # For easy mocking in unit tests
 mock==1.0.1
 
-# For mocking requests reponses
+# For mocking requests responses
+# https://github.com/getsentry/responses
 responses==0.4.0
