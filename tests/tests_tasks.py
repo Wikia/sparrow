@@ -14,6 +14,7 @@ from rest_framework.test import APITestCase
 from tasks.models import TaskStatus
 from tests.mocks.ssh import SSHConnectionMock
 from tests.mocks.requests import post_response
+from tests.mocks.phantomas import PhantomasMock
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True)
@@ -63,10 +64,10 @@ class TestResultTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg='Read failed: {0}'.format(response.data))
 
     @mock.patch('testrunner.tasks.deploy.SSHConnection', SSHConnectionMock)
-    @mock.patch('testrunner.tasks.phantomas_get.phantomas.Phantomas')
+    @mock.patch('testrunner.tasks.phantomas_get.phantomas.Phantomas', PhantomasMock)
     @responses.activate
     @post_response
-    def test_run_task(self, phantomas_mock, post_callback):
+    def test_run_task(self, post_callback):
         url = reverse('task-run', args=[self.task_to_delete.id, ])
         api_uri = re.compile(r'https?://testserver')
 
@@ -86,6 +87,7 @@ class TestResultTestCase(APITestCase):
         self.assertEqual(self.response_data['results']['response_time']['count'], 10)
         self.assertEqual(self.response_data['results']['response_time']['highest'], 123.0)
         self.assertEqual(self.response_data['results']['response_time']['lowest'], 123.0)
+
         self.assertEqual(self.response_data['results']['backend_metrics']['memc_dupes']['count'], 10)
         self.assertEqual(self.response_data['results']['backend_metrics']['memc_dupes']['highest'], 4.0)
         self.assertEqual(self.response_data['results']['backend_metrics']['memc_misses']['count'], 10)
@@ -94,6 +96,13 @@ class TestResultTestCase(APITestCase):
         self.assertEqual(self.response_data['results']['backend_metrics']['query_slave']['highest'], 11.0)
         self.assertEqual(self.response_data['results']['backend_metrics']['query_time']['highest'], 0.363579)
         self.assertEqual(self.response_data['results']['backend_metrics']['server_time']['highest'], 1.869824)
+
+        self.assertEqual(self.response_data['results']['phantomas_metrics']['js_size']['highest'], 927221.0)
+        self.assertEqual(self.response_data['results']['phantomas_metrics']['content_length']['highest'], 1922742.0)
+        self.assertEqual(self.response_data['results']['phantomas_metrics']['css_count']['highest'], 5.0)
+        self.assertEqual(self.response_data['results']['phantomas_metrics']['body_size']['highest'], 1304562.0)
+        self.assertEqual(self.response_data['results']['phantomas_metrics']['html_size']['highest'], 124541.0)
+        self.assertEqual(self.response_data['results']['phantomas_metrics']['other_count']['highest'], 19.0)
 
     def test_update_result(self):
         url = reverse('task-detail', args=[self.task_to_delete.id, ])
