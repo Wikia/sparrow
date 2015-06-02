@@ -1,0 +1,25 @@
+{
+  "name": "sparrow",
+  "version": "0.0.1",
+  "description": "Sparrow =======",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wikia/sparrow.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Wikia/sparrow/issues"
+  },
+  "homepage": "https://github.com/Wikia/sparrow#readme",
+  "dependencies": {
+    "phantomas": "^1.10.2"
+  }
+}
