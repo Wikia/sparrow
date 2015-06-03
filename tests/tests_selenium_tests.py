@@ -3,51 +3,31 @@ from __future__ import unicode_literals
 import mock
 
 from rest_framework.test import APITestCase
-from testrunner.actions.run_selenium_test import RunSeleniumTest
+from testrunner.tasks.selenium_get import SeleniumGet
+from tests.mocks.chrome import ChromeMock
 
 
 class TestResultTestCase(APITestCase):
 
-    def __navigation_timing_api_side_effect(self, *args, **kwargs):
-        if args[0] == 'return new Date().getTime()':
-            return 0
-        if args[0] == 'return document.readyState':
-            return 'complete'
-        if args[0] == 'return window.performance.timing.loadEventEnd':
-            return 7
-        elif args[0] == 'return window.performance.timing':
-            return dict(
-                navigationStart=1,
-                responseStart=2,
-                responseEnd=3,
-                domInteractive=4,
-                domComplete=5,
-                domContentLoadedEventEnd=6,
-                loadEventEnd=7
-            )
-        else:
-            raise Exception('Invalid __navigation_timing_api_side_effect invocation')
-
+    @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
+    @mock.patch('selenium.webdriver.support.wait.WebDriverWait', mock.MagicMock())
     def test_selenium_tests(self):
         url = 'http://muppet.wikia.com'
         hostname = 'wikia.com'
 
-        chrome_mock = mock.MagicMock()
-        chrome_mock.execute_script.side_effect = self.__navigation_timing_api_side_effect
-        with mock.patch('selenium.webdriver.Chrome', return_value=chrome_mock):
-            with mock.patch('selenium.webdriver.support.wait.WebDriverWait'):
-                chrome_mock.execute_script = self.__navigation_timing_api_side_effect
+        selenium_get = SeleniumGet()
+        result_list = selenium_get.run(url=url, retries=2, tests=[
+            dict(test_func='enter_page',
+                             test_name='enter_page', params={'url' : url}),
+            dict(test_func='perftest_oasis_anon_search_pageviews',
+                             test_name='perftest_oasis_anon_search_pageviews', params={'hostname' : hostname}),
+            dict(test_func='perftest_oasis_user_search_pageviews',
+                             test_name='perftest_oasis_user_search_pageviews', params={'hostname' : hostname})
+        ])['selenium']
 
-                run_selenium_test_action = RunSeleniumTest()
-                run_selenium_test_action.run([
-                    RunSeleniumTest.Test(name='enter_page', params={'url' : url}),
-                    RunSeleniumTest.Test(name='perftest_oasis_anon_search_pageviews', params={'hostname' : hostname}),
-                    RunSeleniumTest.Test(name='perftest_oasis_user_search_pageviews', params={'hostname' : hostname})
-                ])
-                result_list = run_selenium_test_action.result['selenium']
-                self.assertEqual(len(result_list), 3)
-                self.assertEqual(result_list[0]['total_load_time'], 7)
-                self.assertEqual(result_list[0]['steps'][0]['url'], 'http://muppet.wikia.com')
-                self.assertEqual(result_list[0]['steps'][0]['backend_time'], 1)
-                self.assertEqual(result_list[1]['total_load_time'], 7)
-                self.assertEqual(result_list[2]['total_load_time'], 7)
+        self.assertEqual(len(result_list), 3)
+        self.assertEqual(result_list['enter_page'][0]['result']['total_load_time'], 7)
+        self.assertEqual(result_list['enter_page'][0]['result']['steps'][0]['url'], 'http://muppet.wikia.com')
+        self.assertEqual(result_list['enter_page'][0]['result']['steps'][0]['backend_time'], 1)
+        self.assertEqual(result_list['perftest_oasis_anon_search_pageviews'][0]['result']['total_load_time'], 7)
+        self.assertEqual(result_list['perftest_oasis_user_search_pageviews'][0]['result']['total_load_time'], 7)
