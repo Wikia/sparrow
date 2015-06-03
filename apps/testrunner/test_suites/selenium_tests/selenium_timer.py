@@ -8,17 +8,17 @@ logger = logging.getLogger(__name__)
 class SeleniumTimer(object):
 
     def __init__(self, driver):
-        self.driver = driver
-        self.measurements = []
+        self.__driver = driver
+        self.__measurements = []
 
     def start(self, test_name):
-        self.start_timestamp = self.driver.execute_script("return new Date().getTime()")
+        self.start_timestamp = self.__driver.execute_script("return new Date().getTime()")
         self.test_name = test_name
 
     def mark_measurement_point(self, url):
-        timing = self.driver.execute_script("return window.performance.timing")
+        timing = self.__driver.execute_script("return window.performance.timing")
 
-        self.measurements.append(dict(
+        self.__measurements.append(dict(
             url = url,
             backend_time = timing['responseStart'] - timing['navigationStart'],
             frontend_time = timing['loadEventEnd'] - timing['responseStart'],
@@ -32,11 +32,11 @@ class SeleniumTimer(object):
         self.total_load_time = timing['loadEventEnd'] - self.start_timestamp
 
     def get_result(self):
-        if len(self.measurements) == 0:
+        if len(self.__measurements) == 0:
             return None
 
         return dict(
             total_load_time = self.total_load_time,
             test_name = self.test_name,
-            steps = self.measurements
+            steps = self.__measurements
         )
