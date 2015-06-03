@@ -129,6 +129,7 @@ INSTALLED_APPS = (
     'results',
     'tasks',
     'testrunner',
+    'metrics',
 )
 
 # Django REST Framework Settings
