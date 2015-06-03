@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import phantomas
 from celery.utils.log import get_task_logger
+from django.conf import settings
 
 from testrunner import app as celery_app
 from common.utils import camel2snake
@@ -11,12 +12,16 @@ logger = get_task_logger(__name__)
 
 
 class PhantomasGet(celery_app.Task):
+    def __init__(self, *args, **kwargs):
+        self.__phantomas_path = settings.SPARROW_TEST_RUNNER['phantomas_path']
+
     def run(self, url, retries=1, query_params=None):
         logger.info('Starting getting data ({0} runs) with Phantomas for url: {1}'.format(retries, url))
 
         phantomas_runner = phantomas.Phantomas(
             url=url,
-            runs=retries
+            runs=retries,
+            exec_path=self.__phantomas_path
         )
         phantomas_result = phantomas_runner.run()
         if retries == 1:

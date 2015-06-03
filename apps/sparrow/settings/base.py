@@ -213,4 +213,5 @@ SPARROW_TEST_RUNNER = {
         }
     ],
     'api_server': get_env_var('SPARROW_API_URI'),
+    'phantomas_path': get_env_var('SPARROW_RUNNER_PHANTOMAS')
 }
