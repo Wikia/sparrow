@@ -208,3 +208,4 @@ SPARROW_TEST_RUNNER = {
 }
 
 CRHOMEDRIVER_PATH = '/usr/lib/chromium-browser/chromedriver'
+BROWSERMOB_PROXY_PATH = '/usr/bin/browsermob-proxy-2.0.0/bin/browsermob-proxy'

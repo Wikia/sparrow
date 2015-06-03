@@ -9,6 +9,7 @@ from . import Action
 from testrunner.test_suites.selenium_tests.selenium_timer import SeleniumTimer
 from selenium import webdriver
 from selenium.webdriver import DesiredCapabilities
+from browsermobproxy import Server
 from sparrow.settings import base
 from testrunner.test_suites.selenium_tests import selenium_tests
 
@@ -18,8 +19,18 @@ logger = logging.getLogger(__name__)
 class RunSeleniumTest(Action):
     Test = namedtuple('Test', 'name, params')
 
-    def get_driver(self):
+    def get_proxy(self):
+
+        server = Server(base.BROWSERMOB_PROXY_PATH)
+        server.start()
+        proxy = server.create_proxy()
+
+        return proxy
+
+    def get_driver(self, proxy):
+
         caps = DesiredCapabilities.CHROME
+        proxy.add_to_webdriver_capabilities(caps)
         driver = webdriver.Chrome(executable_path=base.CRHOMEDRIVER_PATH,
                                   service_args=["--verbose", "--log-path=chromelog.log"],
                                   desired_capabilities=caps)
@@ -42,14 +53,15 @@ class RunSeleniumTest(Action):
 
             logger.info('Running selenium test ' + test.name)
             try:
-                with closing(self.get_driver()) as driver:
+                with closing(self.get_proxy()) as proxy:
+                    with closing(self.get_driver(proxy)) as driver:
 
-                    timer = SeleniumTimer(driver)
-                    timer.start(test.name)
+                        timer = SeleniumTimer(driver, proxy)
+                        timer.start(test.name)
 
-                    self.run_test(test, driver, timer)
+                        self.run_test(test, driver, timer)
 
-                    result_list.append(timer.get_result())
+                        result_list.append(timer.get_result())
             except:
                 logger.error('Exception caught while running selenium test ' + test.name, exc_info=True)
 

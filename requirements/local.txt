@@ -33,3 +33,4 @@ flake8==2.4.1
 
 # Selenium Tests
 selenium==2.45.0
+browsermob-proxy==0.6.0
