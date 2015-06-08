@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from collections import namedtuple
 from contextlib import closing
 
 from celery.utils.log import get_task_logger
@@ -17,8 +16,8 @@ logger = get_task_logger(__name__)
 
 
 class SeleniumGet(celery_app.Task):
-
-    def get_driver(self):
+    @staticmethod
+    def get_driver():
         caps = DesiredCapabilities.CHROME
         driver = webdriver.Chrome(executable_path=base.CRHOMEDRIVER_PATH,
                                   service_args=["--verbose", "--log-path=chromelog.log"],
@@ -29,18 +28,26 @@ class SeleniumGet(celery_app.Task):
 
         return driver
 
-    def get_test_list(self, url):
+    @staticmethod
+    def get_test_list(url):
         hostname = media_wiki_tools.get_hostname_from_url(url)
-        url_muppet = 'http://muppet.{0}.wikia-dev.com/wiki/Kermit'.format(hostname)
-        url_perftest = 'http://perftest.{0}.wikia-dev.com/wiki/Medium_Article'.format(hostname)
-        url_perftest_noexternals = 'http://perftest.{0}.wikia-dev.com/wiki/Medium_Article?noexternals=1'.format(hostname)
+        url_muppet = 'http://muppet.{0}/wiki/Kermit'.format(hostname)
+        url_perftest = 'http://perftest.{0}/wiki/Medium_Article'.format(hostname)
+        url_perftest_no_externals = 'http://perftest.{0}/wiki/Medium_Article?noexternals=1'.format(
+            hostname)
         return [
-            dict(test_func='enter_page', test_name='load_provided_url', params={'url' : url}),
-            dict(test_func='enter_page', test_name='oasis_muppet_kermit', params={'url' : url_muppet}),
-            dict(test_func='enter_page', test_name='oasis_perftest_medium_article_no_ads', params={'url' : url_perftest}),
-            dict(test_func='enter_page', test_name='oasis_perftest_medium_article_no_externals', params={'url' : url_perftest_noexternals}),
-            dict(test_func='perftest_oasis_anon_search_pageviews', test_name='perftest_oasis_anon_search_pageviews', params={'hostname' : hostname}),
-            dict(test_func='perftest_oasis_user_search_pageviews', test_name='perftest_oasis_user_search_pageviews', params={'hostname' : hostname})
+            {'test_func': 'enter_page', 'test_name': 'load_provided_url',
+             'params': {'url': url}},
+            {'test_func': 'enter_page', 'test_name': 'oasis_muppet_kermit',
+             'params': {'url': url_muppet}},
+            {'test_func': 'enter_page', 'test_name': 'oasis_perftest_medium_article_no_ads',
+             'params': {'url': url_perftest}},
+            {'test_func': 'enter_page', 'test_name': 'oasis_perftest_medium_article_no_externals',
+             'params': {'url': url_perftest_no_externals}},
+            {'test_func': 'perftest_oasis_anon_search_pageviews', 'test_name': 'perftest_oasis_anon_search_pageviews',
+             'params': {'hostname': hostname}},
+            {'test_func': 'perftest_oasis_user_search_pageviews', 'test_name': 'perftest_oasis_user_search_pageviews',
+             'params': {'hostname': hostname}}
         ]
 
     def run(self, url, retries=1, tests=None):
@@ -52,13 +59,12 @@ class SeleniumGet(celery_app.Task):
 
         for test in tests:
             result_for_test = []
-            for turn in range(1, retries+1):
+            for turn in range(1, retries + 1):
                 test_result = self.run_test(test)
-                result_for_test.append({'run' : turn, 'result' : test_result})
+                result_for_test.append({'run': turn, 'result': test_result})
             result[test['test_name']] = result_for_test
 
-        return {'selenium' : result}
-
+        return {'selenium': result}
 
     def run_test(self, test):
         logger.info('Running selenium test: ' + test['test_name'])
@@ -66,7 +72,7 @@ class SeleniumGet(celery_app.Task):
             with closing(self.get_driver()) as driver:
 
                 timer = SeleniumTimer(driver)
-                timer.start(test['test_name'])
+                timer.start()
 
                 test_func = getattr(selenium_tests, test['test_func'])
                 test_func(driver, timer, test['params'])

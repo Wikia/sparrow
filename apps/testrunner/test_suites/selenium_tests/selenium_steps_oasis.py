@@ -13,6 +13,7 @@ def search(driver, timer, text):
     selenium_steps.wait_for_page_load(driver)
     timer.mark_measurement_point(driver.current_url)
 
+
 def login_on_special_user_login(driver, timer):
     driver.find_element_by_css_selector('.WikiaArticle input[name="username"]').send_keys('keynote')
     driver.find_element_by_css_selector('.WikiaArticle input[name="password"]').send_keys('testme')

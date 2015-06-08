@@ -13,6 +13,7 @@ def enter_page(driver, timer, params):
 
     selenium_steps.enter_page(driver, timer, url)
 
+
 def perftest_oasis_anon_search_pageviews(driver, timer, params):
     hostname = params['hostname']
     perftest_wiki_domain = 'http://perftest.{0}'.format(hostname)

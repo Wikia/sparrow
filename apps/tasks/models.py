@@ -66,7 +66,7 @@ class Task(models.Model):
         test_run = self.test_run
         suite = SimpleTestSuite()
         result = suite.run(
-            retries=10,
+            retries=2,
             url=test_run.test_run_uri,
             app_commit=test_run.main_revision,
             config_commit=test_run.secondary_revision,
