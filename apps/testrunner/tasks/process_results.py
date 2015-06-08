@@ -130,6 +130,34 @@ class ProcessResponses(celery_app.Task):
         logger.debug('Response (code: {0}): {1}'.format(response.status_code, response.content))
         response.raise_for_status()
 
+    @staticmethod
+    def _calculate_selenium_stats_single_step(selenium_results, test_name, metric):
+        return ProcessResponses._calculate_stats(
+            [x['result']['steps'][0][metric] for x in selenium_results[test_name]])
+
+    @staticmethod
+    def _calculate_selenium_stats_total_load_time(selenium_results, test_name, metric):
+        return ProcessResponses._calculate_stats(
+            [x['result']['total_load_time'] for x in selenium_results[test_name]])
+
+    @staticmethod
+    def _get_selenium_metrics(selenium_results):
+        result = {}
+        result['page_load_no_externals'] = ProcessResponses._calculate_selenium_stats_single_step(
+            selenium_results, 'oasis_perftest_medium_article_no_externals', 'total_load_time');
+        result['page_dom_complete_no_externals'] = ProcessResponses._calculate_selenium_stats_single_step(
+            selenium_results, 'oasis_perftest_medium_article_no_externals', 'dom_complete_time');
+        result['page_load_no_ads'] = ProcessResponses._calculate_selenium_stats_single_step(
+            selenium_results, 'oasis_perftest_medium_article_no_ads', 'total_load_time');
+        result['page_dom_complete_no_ads'] = ProcessResponses._calculate_selenium_stats_single_step(
+            selenium_results, 'oasis_perftest_medium_article_no_ads', 'dom_complete_time');
+        result['perftest_oasis_anon_search_pageviews_total_load_time'] = ProcessResponses._calculate_selenium_stats_total_load_time(
+            selenium_results, 'perftest_oasis_anon_search_pageviews', 'total_load_time');
+        result['perftest_oasis_user_search_pageviews_total_load_time'] = ProcessResponses._calculate_selenium_stats_total_load_time(
+            selenium_results, 'perftest_oasis_user_search_pageviews', 'total_load_time');
+
+        return result
+
     def run(self, data, test_run_uri, task_uri, result_uri):
         logger.info('Starting processing results...')
 
@@ -164,6 +192,11 @@ class ProcessResponses(celery_app.Task):
 
                 for metric, value in six.iteritems(results['backend_metrics']):
                     results['backend_metrics'][metric] = self._calculate_stats(value)
+            elif 'selenium' in item:
+                logger.info('Gathering selenium statistics...')
+
+                results['selenium_raw'] = item['selenium']
+                results['selenium_metrics'] = self._get_selenium_metrics(item['selenium'])
             elif 'phantomas_get' in item:
                 results['phantomas_metrics'] = {}
                 phantomas_metrics = [

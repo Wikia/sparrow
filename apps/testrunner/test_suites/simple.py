@@ -11,6 +11,7 @@ from testrunner.tasks.http_get import HttpGet
 from testrunner.tasks.http_get import MWProfilerGet
 from testrunner.tasks.phantomas_get import PhantomasGet
 from testrunner.tasks.process_results import ProcessResponses
+from testrunner.tasks.selenium_get import SeleniumGet
 
 logger = get_task_logger(__name__)
 
@@ -38,6 +39,7 @@ class SimpleTestSuite(object):
             group(
                 HttpGet().si(url=kwargs['url'], retries=retries),
                 MWProfilerGet().si(url=kwargs['url'], retries=retries),
+                SeleniumGet().si(url=kwargs['url'], retries=retries),
                 PhantomasGet().si(url=kwargs['url'], retries=retries)
             ) |
             ProcessResponses().s(
