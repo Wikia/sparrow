@@ -1,6 +1,3 @@
-from common.utils import camel2snake
-
-
 class MetricType:
     UNKNOWN = 'unknown'
     TIME = 'time'
@@ -64,13 +61,9 @@ KNOWN_PHANTOMAS_METRICS = {
 }
 
 
-def normalize_phantomas_metric_name(s):
-    if s.startswith('DOM'):
-        s = s[0:3] + s[3].upper() + s[4:]
-    return camel2snake(s)
-
 def normalize_phantomas_value(s, type):
     if type == 'time':
+        # phantomas reports time with millisecond precision whereas we use second as the standard time unit
         s = float(s) / 1000
     return s
 
@@ -80,7 +73,7 @@ def get_phantomas_metrics(results):
         return []
 
     context = {
-        'url': '',  # need to get it from somewhere
+        'url': '',  # todo: need to get it from somewhere
     }
     meta = {
         'origin': 'phantomas',
@@ -91,14 +84,14 @@ def get_phantomas_metrics(results):
 
     metrics = []
     for metric_name in metric_names:
-        origin_id = 'raw.phantomas.' + normalize_phantomas_metric_name(metric_name)
+        origin_id = 'raw.phantomas.' + metric_name
         id = origin_id
         type = MetricType.UNKNOWN
         if metric_name in KNOWN_PHANTOMAS_METRICS:
             type, sep, id = KNOWN_PHANTOMAS_METRICS[metric_name].rpartition(':')
 
         data = [
-            normalize_phantomas_value(run['metrics'][metric_name], type) if metric_name in run['metrics'] else None
+            normalize_phantomas_value(run['metrics'][metric_name], type)
             for run in results
         ]
         extra = [
