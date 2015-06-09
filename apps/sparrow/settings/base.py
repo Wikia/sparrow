@@ -191,6 +191,11 @@ LOGGING = {
             'handlers': ['log_to_stdout'],
             'level': 'DEBUG',
             'propagate': True,
+        },
+        '': {
+            'handlers': ['log_to_stdout'],
+            'level': 'DEBUG',
+            'propagate': True,
         }
     },
     'formatters': {

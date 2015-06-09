@@ -5,103 +5,102 @@ class MetricType:
     COUNT = 'count'
 
 
+class MetricCollection(object):
+    def __init__(self, metrics=None):
+        if metrics is None:
+            metrics = []
+        self.metrics = metrics
+
+    def add(self, metric):
+        self.metrics.append(metric)
+
+    def __iter__(self):
+        return iter(self.metrics)
+
+    def sort(self, *args, **kwargs):
+        return MetricCollection(sorted(self.metrics, *args, **kwargs))
+
+    def filter(self, function):
+        return MetricCollection(filter(function, self.metrics))
+
+    def __add__(self, other):
+        new_collection = MetricCollection()
+        new_collection += self
+        new_collection += other
+        return new_collection
+
+    def __iadd__(self, other):
+        self.metrics.extend(other.metrics)
+
+    def serialize(self):
+        return [
+            metric.serialize()
+            for metric in self.metrics
+        ]
+
+
 class Metric(object):
-    def __init__(self, origin_id, id, type, context, meta, data, extra):
-        self.origin_id = origin_id
-        self.id = id
+    def __init__(self, id, context, type, info=None, values=None):
         self.type = type
+        context = context.copy()
+        context['id'] = id
         self.context = context
-        self.meta = meta
-        self.data = data
-        self.extra = extra
+        self.info = info
+
+        self.values = []
+        if values is not None:
+            self.add_values(values)
+
+    @property
+    def id(self):
+        return self.context['id']
+
+    def add_value(self, raw_value, info=None):
+        self.values.append(MetricValue(raw_value, info))
+
+    def add_values(self, values):
+        for raw_value, info in values:
+            self.add_value(raw_value, info)
 
     def __str__(self):
-        return repr(self)
+        return self.__unicode__().encode('utf-8')
+
+    def __unicode__(self):
+        return self.__repr__()
 
     def __repr__(self):
-        return '<Metric: {} data={}>'.format(self.id, self.data)
+        return u'<Metric id={} context={} info={} values=[{}]>'.format(self.id, self.context, self.info, self.values)
 
+    def serialize(self):
+        return {
+            'type': self.type,
+            'context': self.context,
+            'info': self.info,
+            'values': [
+                value.serialize()
+                for value in self.values
+            ]
+        }
 
-KNOWN_PHANTOMAS_METRICS = {
-    'DOMelementMaxDepth': 'browser.dom.tree.max_depth',
-    'DOMelementsCount': 'browser.dom.tree.elements',
-    'DOMinserts': 'browser.dom.operations.inserts',
-    'DOMqueries': 'browser.dom.operations.queries',
-    'ajaxRequests': 'browser.net.ajax.requests',
-    'base64Count': 'browser.assets.base64.count',
-    'base64Size': 'size:browser.assets.base64.size',
-    'cssCount': 'browser.assets.css.count',
-    'cssSize': 'size:browser.assets.css.size',
-    'domComplete': 'time:browser.dom.event.complete',
-    'domContentLoaded': 'time:browser.dom.event.content_loaded',
-    'domContentLoadedEnd': 'time:browser.dom.event.content_loaded.end',
-    'domInteractive': 'time:browser.dom.event.interactive',
-    'domains': 'browser.net.domains',
-    'firstPaint': 'browser.dom.event.first_paint',
-    'htmlCount': 'browser.assets.html.count',
-    'htmlSize': 'size:browser.assets.html.size',
-    'imageCount': 'browser.assets.image.count',
-    'imageSize': 'time:browser.assets.image.size',
-    'jsCount': 'browser.assets.js.count',
-    'jsSize': 'size:browser.assets.js.size',
-    'jsonCount': 'browser.assets.json.count',
-    'jsonSize': 'size:browser.assets.json.size',
-    'otherCount': 'browser.assets.other.count',
-    'otherSize': 'size:browser.assets.other.size',
-    'repaints': 'browser.screen.repaints',
-    'timeToFirstByte': 'time:browser.net.first_byte',
-    'timeToFirstCss': 'time:browser.net.first_css',
-    'timeToFirstImage': 'time:browser.net.first_image',
-    'timeToFirstJs': 'time:browser.net.first_js',
-    'timeToLastByte': 'time:browser.net.last_byte',
-    'videoCount': 'browser.assets.video.count',
-    'videoSize': 'size:browser.assets.video.size',
-    'webfontCount': 'browser.assets.webfont.count',
-    'webfontSize': 'size:browser.assets.webfont.size',
-}
+class MetricValue(object):
+    def __init__(self, raw_value, info=None):
+        self.raw_value = raw_value
+        self.info = info
 
+    def __str__(self):
+        return self.__unicode__().encode('utf-8')
 
-def normalize_phantomas_value(s, type):
-    if type == 'time':
-        # phantomas reports time with millisecond precision whereas we use second as the standard time unit
-        s = float(s) / 1000
-    return s
+    def __unicode__(self):
+        return self.__repr__()
 
+    def __repr__(self):
+        return u'<MetricValue raw_value={} info={}>'.format(self.raw_value, self.info)
 
-def get_phantomas_metrics(results):
-    if len(results) == 0:
-        return []
-
-    context = {
-        'url': '',  # todo: need to get it from somewhere
-    }
-    meta = {
-        'origin': 'phantomas',
-    }
-    metric_names = set()
-    for run in results:
-        metric_names.update(run['metrics'].keys())
-
-    metrics = []
-    for metric_name in metric_names:
-        origin_id = 'raw.phantomas.' + metric_name
-        id = origin_id
-        type = MetricType.UNKNOWN
-        if metric_name in KNOWN_PHANTOMAS_METRICS:
-            type, sep, id = KNOWN_PHANTOMAS_METRICS[metric_name].rpartition(':')
-
-        data = [
-            normalize_phantomas_value(run['metrics'][metric_name], type)
-            for run in results
-        ]
-        extra = [
-            run['offenders'][metric_name] if metric_name in run['offenders'] else None
-            for run in results
-        ]
-
-        metrics.append(Metric(origin_id, id, type, context, meta, data, extra))
-
-    return metrics
+    def serialize(self):
+        return {
+            'value': self.raw_value,
+            'info': self.info
+        }
 
 
 
