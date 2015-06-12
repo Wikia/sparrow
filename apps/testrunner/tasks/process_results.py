@@ -87,3 +87,4 @@ class ProcessResponses(celery_app.Task):
 
         self.post_results(result_uri, test_run_uri, task_uri, results)
 
+        return results

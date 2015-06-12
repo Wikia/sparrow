@@ -61,7 +61,7 @@ class ExecuteQuery(object):
         self.query = query
 
     def run(self):
-        context_filters = [condition.fn for condition in self.query.where_clause]
+        context_filters = [condition['fn'] for condition in self.query.where_clause]
         ignore_context_fields = set(self.query.group_by_clause)
 
         buckets = defaultdict(list)

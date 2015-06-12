@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.core.urlresolvers import reverse
+import ujson
 
 from testrunner.tasks.http_get import MWProfilerGet, HttpGet
 from testrunner.tasks.phantomas_get import PhantomasGet
@@ -15,6 +16,9 @@ def build_absolute_uri(uri):
 
 class Command(BaseCommand):
     help = 'Runs phantomas and prints all metrics gathered'
+
+    def add_arguments(self, parser):
+        parser.add_argument('--out', type=str)
 
     def handle(self, *args, **options):
         params = {
@@ -41,4 +45,9 @@ class Command(BaseCommand):
                     task_uri=build_absolute_uri(reverse('task-detail', args=[1, ])),
                     test_run_uri=build_absolute_uri(reverse('testrun-detail', args=[1, ])),
         )
+
+        if options['out']:
+            with open(options['out'],'w') as f:
+                ujson.dump(rr,f)
+
 

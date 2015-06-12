@@ -39,6 +39,13 @@ class Collection(object):
             for metric in self.metrics
         ]
 
+    @staticmethod
+    def unserialize(data):
+        return Collection([
+            Metric.unserialize(metric_data)
+            for metric_data in data
+        ])
+
 
 class Metric(object):
     def __init__(self, id, context, type, info=None, values=None):
@@ -79,7 +86,6 @@ class Metric(object):
 
     def serialize(self):
         return {
-            'type': self.type,
             'context': self.context,
             'info': self.info,
             'values': [
@@ -87,6 +93,19 @@ class Metric(object):
                 for value in self.values
             ]
         }
+
+    @staticmethod
+    def unserialize(data):
+        return Metric(
+            data['context']['id'],
+            data['context'],
+            data['context']['type'],
+            data['info'],
+            [
+                (value_data['value'], value_data['info'])
+                for value_data in data['values']
+            ])
+
 
 class Value(object):
     def __init__(self, raw_value, info=None):
@@ -107,6 +126,10 @@ class Value(object):
             'value': self.raw_value,
             'info': self.info
         }
+
+    @staticmethod
+    def unserialize(data):
+        return Value(data['value'],data['info'])
 
 
 
