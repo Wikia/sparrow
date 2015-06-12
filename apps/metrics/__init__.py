@@ -3,6 +3,7 @@ class MetricType:
     TIME = 'time'
     SIZE = 'size'
     COUNT = 'count'
+    QUERY_LIST = 'query_list'
 
 
 class Collection(object):

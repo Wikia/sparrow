@@ -116,45 +116,41 @@ class ProfilerMetricGenerator(MetricGenerator):
         context['origin'] = 'mw_profiler'
 
         metric_defs = {
-            'server_time': MetricType.TIME,
-            'query_time': MetricType.TIME,
-            'query_master': MetricType.COUNT,
-            'query_slave': MetricType.COUNT,
-            'memc_time': MetricType.TIME,
-            'memc_misses': MetricType.COUNT,
-            'memc_hits': MetricType.COUNT,
-            'memc_dupes': MetricType.COUNT,
+            'response_time': MetricType.TIME,
+            'database.queries.list': MetricType.QUERY_LIST,
+            'database.queries.time': MetricType.TIME,
+            'database.queries.master_count': MetricType.COUNT,
+            'database.queries.slave_count': MetricType.COUNT,
+            'memcached.time': MetricType.TIME,
+            'memcached.miss_count': MetricType.COUNT,
+            'memcached.hit_count': MetricType.COUNT,
+            'memcached.dupe_count': MetricType.COUNT,
         }
-        name_template = 'server.app.{}'
+
+        name_template = 'mediawiki.{}'
         metrics = {
             name: Metric(name_template.format(name), context, type)
             for name, type in metric_defs.items()
         }
 
         for single_run in data:
-            profiler_metrics, profiler_infos = self.parse_data(single_run['profiler_data'])
-            for name, raw_value in profiler_metrics.items():
-                info = None
-                if name == 'query_time':
-                    info = profiler_infos['queries']
-
-                metrics[name].add_value(raw_value, info)
+            data = self.parse_data(single_run['profiler_data'])
+            for name, raw_value in data.items():
+                metrics[name].add_value(data, None)
 
         return Collection(metrics.values())
 
     def parse_data(self, raw_data):
-        metrics = {
-            'server_time': 0.0,
-            'query_time': 0.0,
-            'query_master': 0,
-            'query_slave': 0,
-            'memc_time': 0.0,
-            'memc_misses': 0,
-            'memc_hits': 0,
-            'memc_dupes': 0
-        }
-        infos = {
-            'queries': [],
+        out_data = {
+            'response_time': 0.0,
+            'database.queries.time': 0.0,
+            'database.queries.master_count': 0,
+            'database.queries.slave_count': 0,
+            'memcached.time': 0.0,
+            'memcached.miss_count': 0,
+            'memcached.hit_count': 0,
+            'memcached.dupe_count': 0,
+            'database.queries.list': [],
         }
 
         for line in raw_data.splitlines():
@@ -168,38 +164,38 @@ class ProfilerMetricGenerator(MetricGenerator):
                 count = int(count)
 
                 if name == '-total':
-                    metrics['server_time'] += time
+                    out_data['response_time'] += time
                 elif name == 'DatabaseBase::query' or name == 'DatabaseBase::query-master':
-                    metrics['query_time'] += time
+                    out_data['database.queries.time'] += time
 
                     if name == 'DatabaseBase::query-master':
-                        metrics['query_master'] += count
+                        out_data['database.queries.master_count'] += count
                     else:
-                        metrics['query_slave'] += count
+                        out_data['database.queries.slave_count'] += count
                 elif name == 'MWMemcached::get':
-                    metrics['memc_time'] += time
+                    out_data['memcached.time'] += time
                 else:
                     match = self.__MEMCACHE_REGEXP.match(name)
 
                     if match is not None:
                         memc_type = match.group(1)
                         if memc_type == 'HIT':
-                            metrics['memc_hits'] += count
+                            out_data['memcached.hit_count'] += count
                         elif memc_type == 'MISS':
-                            metrics['memc_misses'] += count
+                            out_data['memcached.miss_count'] += count
                         elif memc_type == 'DUPE':
-                            metrics['memc_dupes'] += count
+                            out_data['memcached.dupe_count'] += count
 
                     match = self.__QUERY_REGEXP.match(name)
 
                     if match is not None:
-                        infos['queries'].append({
+                        out_data['database.queries.list'].append({
                             'statement': match.group(1),
                             'count': count,
                             'time': time,
                         })
 
-        return metrics, infos
+        return out_data
 
 
 class RequestsMetricGenerator(MetricGenerator):
