@@ -42,10 +42,11 @@ class Collection(object):
 
 class Metric(object):
     def __init__(self, id, context, type, info=None, values=None):
-        self.type = type
         context = context.copy()
         context['id'] = id
+        context['type'] = type
         self.context = context
+
         self.info = info
 
         self.values = []
@@ -55,6 +56,10 @@ class Metric(object):
     @property
     def id(self):
         return self.context['id']
+
+    @property
+    def type(self):
+        return self.context['type']
 
     def add_value(self, raw_value, info=None):
         self.values.append(Value(raw_value, info))
