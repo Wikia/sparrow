@@ -1,3 +1,6 @@
+from metrics.values import ValueSet, Value
+
+
 class MetricType:
     UNKNOWN = 'unknown'
     TIME = 'time'
@@ -56,7 +59,7 @@ class Metric(object):
 
         self.info = info
 
-        self.values = []
+        self.values = ValueSet(context['type'])
         if values is not None:
             self.add_values(values)
 
@@ -106,30 +109,6 @@ class Metric(object):
                 for value_data in data['values']
             ])
 
-
-class Value(object):
-    def __init__(self, raw_value, info=None):
-        self.raw_value = raw_value
-        self.info = info
-
-    def __str__(self):
-        return self.__unicode__().encode('utf-8')
-
-    def __unicode__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return u'<MetricValue raw_value={} info={}>'.format(self.raw_value, self.info)
-
-    def serialize(self):
-        return {
-            'value': self.raw_value,
-            'info': self.info
-        }
-
-    @staticmethod
-    def unserialize(data):
-        return Value(data['value'],data['info'])
 
 
 

@@ -28,10 +28,17 @@ class Command(BaseCommand):
 
         all_metrics = Collection.unserialize(data)
 
-        query = Query().where_eq('id','browser.net.ajax.requests')
+        query = Query().where_eq('id','browser.dom.event.complete')
 
         result_set = query.execute(all_metrics)
 
         for result in result_set:
             print list(result.values)
-
+            print result.raw_values
+            print 'mean', result.stats.mean
+            print 'median', result.stats.median
+            print 'stddev', result.stats.stddev
+            print '5% percentile', result.stats.pct_5
+            print '50% percentile', result.stats.pct_50
+            print '90% percentile', result.stats.pct_90
+            print '95% percentile', result.stats.pct_95

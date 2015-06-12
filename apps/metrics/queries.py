@@ -1,4 +1,5 @@
 from collections import defaultdict
+from metrics.values import ValueSet
 
 
 class Query(object):
@@ -33,26 +34,19 @@ class ResultSet(object):
         return iter(self.results)
 
 
-class Result(object):
+class Result(ValueSet):
     def __init__(self, context, metrics):
         self.context = context
         self.metrics = metrics
+        super(Result, self).__init__(context['type'],[
+            v
+            for metric in metrics
+            for v in metric.values
+        ])
 
     @property
     def id(self):
         return self.context['id']
-
-    @property
-    def type(self):
-        return self.context['type']
-
-    @property
-    def values(self):
-        return (
-            v
-            for metric in self.metrics
-            for v in metric.values
-        )
 
 
 class ExecuteQuery(object):

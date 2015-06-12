@@ -18,12 +18,13 @@ class Command(BaseCommand):
     help = 'Runs phantomas and prints all metrics gathered'
 
     def add_arguments(self, parser):
+        parser.add_argument('--runs', default=2, type=int)
         parser.add_argument('--out', type=str)
 
     def handle(self, *args, **options):
         params = {
             'url': 'http://www.wikia.com/Wikia?noexternals=1',
-            'retries': 2,
+            'retries': options['runs'],
         }
 
         pg = PhantomasGet()
