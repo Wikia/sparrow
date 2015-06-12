@@ -1,5 +1,5 @@
 import re
-from metrics import MetricCollection, Metric, MetricType
+from metrics import Collection, Metric, MetricType
 
 
 class MetricGenerator(object):
@@ -69,7 +69,7 @@ class PhantomasMetricGenerator(MetricGenerator):
     def extract(self, context, data):
         context['origin'] = 'phantomas'
 
-        metrics = MetricCollection()
+        metrics = Collection()
 
         if len(data) == 0:
             return metrics
@@ -140,7 +140,7 @@ class ProfilerMetricGenerator(MetricGenerator):
 
                 metrics[name].add_value(raw_value, info)
 
-        return MetricCollection(metrics.values())
+        return Collection(metrics.values())
 
     def parse_data(self, raw_data):
         metrics = {
@@ -208,7 +208,7 @@ class RequestsMetricGenerator(MetricGenerator):
     def extract(self, context, data):
         context['origin'] = 'requests'
 
-        metrics = MetricCollection()
+        metrics = Collection()
         metrics.add(Metric('server.app.response_time', context, MetricType.TIME, values=[
             (float(single_run['headers']['x-backend-response-time']), None)
             for single_run in data

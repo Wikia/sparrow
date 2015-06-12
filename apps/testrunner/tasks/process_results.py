@@ -5,7 +5,7 @@ import numpy
 import requests
 import ujson
 from celery.utils.log import get_task_logger
-from metrics import MetricCollection
+from metrics import Collection
 
 from testrunner import app as celery_app
 from testrunner.metric_generators import PhantomasMetricGenerator, ProfilerMetricGenerator, RequestsMetricGenerator
@@ -66,15 +66,21 @@ class ProcessResponses(celery_app.Task):
     def run(self, data, test_run_uri, task_uri, result_uri):
         logger.info('Starting processing results...')
 
-        generators = [
-            PhantomasMetricGenerator(),
-            ProfilerMetricGenerator(),
-            RequestsMetricGenerator()
-        ]
+        generators = {
+            'phantomas': [
+                PhantomasMetricGenerator()
+            ],
+            'mw_profiler': [
+                ProfilerMetricGenerator()
+            ],
+            'python.requests': [
+                RequestsMetricGenerator()
+            ]
+        }
 
-        metrics = MetricCollection()
+        metrics = Collection()
         for item in data:
-            for generator in generators:
+            for generator in generators[item['generator']]:
                 generator(metrics, item)
 
         results = metrics.serialize()

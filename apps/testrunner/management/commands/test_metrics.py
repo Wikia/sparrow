@@ -8,7 +8,9 @@ from testrunner.tasks.process_results import ProcessResponses
 
 
 def build_absolute_uri(uri):
-    return settings.SPARROW_TEST_RUNNER['api_server']
+    api_url = settings.SPARROW_TEST_RUNNER['api_server']
+    api_url = api_url[:api_url.index('/api/v1/')]
+    return api_url + uri
 
 
 class Command(BaseCommand):

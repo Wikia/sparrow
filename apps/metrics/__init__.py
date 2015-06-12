@@ -5,7 +5,7 @@ class MetricType:
     COUNT = 'count'
 
 
-class MetricCollection(object):
+class Collection(object):
     def __init__(self, metrics=None):
         if metrics is None:
             metrics = []
@@ -18,13 +18,13 @@ class MetricCollection(object):
         return iter(self.metrics)
 
     def sort(self, *args, **kwargs):
-        return MetricCollection(sorted(self.metrics, *args, **kwargs))
+        return Collection(sorted(self.metrics, *args, **kwargs))
 
     def filter(self, function):
-        return MetricCollection(filter(function, self.metrics))
+        return Collection(filter(function, self.metrics))
 
     def __add__(self, other):
-        new_collection = MetricCollection()
+        new_collection = Collection()
         new_collection += self
         new_collection += other
         return new_collection
@@ -56,7 +56,7 @@ class Metric(object):
         return self.context['id']
 
     def add_value(self, raw_value, info=None):
-        self.values.append(MetricValue(raw_value, info))
+        self.values.append(Value(raw_value, info))
 
     def add_values(self, values):
         for raw_value, info in values:
@@ -82,7 +82,7 @@ class Metric(object):
             ]
         }
 
-class MetricValue(object):
+class Value(object):
     def __init__(self, raw_value, info=None):
         self.raw_value = raw_value
         self.info = info
