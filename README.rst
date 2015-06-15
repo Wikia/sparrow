@@ -38,7 +38,9 @@ Install development requirements with::
     pip install -r requirements/local.txt
 
 
-Install dependencies:
+Install dependencies::
+
+    apt-get install chromium-chromedriver #(for Windows or OSX go to https://sites.google.com/a/chromium.org/chromedriver/downloads)
 
     apt-get install phantomjs
     npm install -g phantomas
@@ -75,6 +77,8 @@ Here is a list of the required environment variables:
 
 * SPARROW_SECRET_KEY
 
+* SPARROW_RUNNER_PHANTOMAS
+
 The following environment variables are required for Celery (pre-configured for Redis):
 
 * SPARROW_CELERY_BROKER_URL
@@ -96,6 +100,12 @@ Set the contents as follows::
     export SPARROW_CELERY_BROKER_URL="redis://localhost:6379/0";
     export SPARROW_RUNNER_DEPLOY_HOST="dev-synth1";
     export SPARROW_RUNNER_TARGET_HOST="dev-synth1";
+    export SPARROW_RUNNER_PHANTOMAS="/path/to/phantomas";
+
+Set ``SPARROW_RUNNER_PHANTOMAS`` to a path where you have installed phantomas. If you have
+it installed globally just set it to ``phantomas`` if not you can run ``npm install`` and set the path
+to a folder ``{PROJECT_DIR}/node_modules/.bin/phantomas`` where ``{PROJECT_DIR}`` is the path
+to a project directory where you ran ``npm install`` command.
 
 Setting ``DJANGO_SETTINGS_MODULE`` to ``sparrow.settings.local``,
 is not strictly necessary, but helpful to avoid the need for the

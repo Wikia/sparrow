@@ -81,4 +81,4 @@ colorlog==2.6.0
 numpy==1.9.2
 
 # phantomas
-phantomas==0.2.1
+phantomas==0.2.2

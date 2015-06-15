@@ -8,7 +8,8 @@ from celery.utils.log import get_task_logger
 from metrics import Collection
 
 from testrunner import app as celery_app
-from testrunner.metric_generators import PhantomasMetricGenerator, ProfilerMetricGenerator, RequestsMetricGenerator
+from testrunner.metric_generators import PhantomasMetricGenerator, ProfilerMetricGenerator, RequestsMetricGenerator, \
+    SeleniumMetricGenerator
 
 logger = get_task_logger(__name__)
 
@@ -75,6 +76,9 @@ class ProcessResponses(celery_app.Task):
             ],
             'python.requests': [
                 RequestsMetricGenerator()
+            ],
+            'selenium': [
+                SeleniumMetricGenerator()
             ]
         }
 

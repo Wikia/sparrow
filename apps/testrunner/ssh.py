@@ -76,7 +76,8 @@ class SSHConnection(object):
         """
         Close connection
         """
-        self.connection.close()
+        if self.connection is not None:
+            self.connection.close()
 
     @connection_required
     def read_file(self, name):

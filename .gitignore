@@ -58,3 +58,6 @@ target/
 
 # IDE specific
 .idea/
+
+# node.js moduls
+node_modules/

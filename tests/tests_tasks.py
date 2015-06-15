@@ -15,6 +15,7 @@ from tasks.models import TaskStatus
 from tests.mocks.ssh import SSHConnectionMock
 from tests.mocks.requests import post_response
 from tests.mocks.phantomas import PhantomasMock
+from tests.mocks.chrome import ChromeMock
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True)
@@ -65,6 +66,8 @@ class TestResultTestCase(APITestCase):
 
     @mock.patch('testrunner.tasks.deploy.SSHConnection', SSHConnectionMock)
     @mock.patch('testrunner.tasks.phantomas_get.phantomas.Phantomas', PhantomasMock)
+    @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
+    @mock.patch('selenium.webdriver.support.wait.WebDriverWait', mock.MagicMock())
     @responses.activate
     @post_response
     def test_run_task(self, post_callback):

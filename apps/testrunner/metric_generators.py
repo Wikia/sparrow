@@ -211,3 +211,76 @@ class RequestsMetricGenerator(MetricGenerator):
         ]))
 
         return metrics
+
+
+class SeleniumMetricGenerator(MetricGenerator):
+    ACCEPT_GENERATORS = ['selenium']
+
+    def extract(self, context, data):
+        context['origin'] = 'selenium'
+
+        noexternals_context = merge_context(context,{
+            'mode': 'noexternals'
+        })
+
+        noads_context = merge_context(context,{
+            'mode': 'noads'
+        })
+
+        anon_search_context = merge_context(context,{
+            'scenario': 'search',
+            'user': 'anon'
+        })
+
+        user_search_context = merge_context(context,{
+            'scenario': 'search',
+            'user': 'user'
+        })
+
+        metrics = Collection()
+        # noexternals
+        metrics.add(Metric(
+            'browser.dom.event.load', noexternals_context, MetricType.TIME,
+            values=self.metric_values_single_step(
+                data, 'oasis_perftest_medium_article_no_externals', 'total_load_time')))
+        metrics.add(Metric(
+            'browser.dom.event.complete', noexternals_context, MetricType.TIME,
+            values=self.metric_values_single_step(
+                data, 'oasis_perftest_medium_article_no_externals', 'dom_complete_time')))
+        # noads
+        metrics.add(Metric(
+            'browser.dom.event.load', noads_context, MetricType.TIME,
+            values=self.metric_values_single_step(
+                data, 'oasis_perftest_medium_article_no_ads', 'total_load_time')))
+        metrics.add(Metric(
+            'browser.dom.event.complete', noads_context, MetricType.TIME,
+            values=self.metric_values_single_step(
+                data, 'oasis_perftest_medium_article_no_ads', 'dom_complete_time')))
+
+        metrics.add(Metric(
+            'browser.dom.event.complete', noads_context, MetricType.TIME,
+            values=self.metric_values_single_step(
+                data, 'oasis_perftest_medium_article_no_ads', 'dom_complete_time')))
+        # total time
+        metrics.add(Metric(
+            'browser.transaction.time', anon_search_context, MetricType.TIME,
+            values=self.total_load_time_all_steps(data, 'perftest_oasis_anon_search_pageviews')))
+        metrics.add(Metric(
+            'browser.transaction.time', user_search_context, MetricType.TIME,
+            values=self.total_load_time_all_steps(data, 'perftest_oasis_user_search_pageviews')))
+
+        return metrics
+
+    @staticmethod
+    def metric_values_single_step(selenium_results, test_name, metric):
+        return [x['result']['steps'][0][metric] for x in selenium_results[test_name]]
+
+    @staticmethod
+    def total_load_time_all_steps(selenium_results, test_name):
+        return [x['result']['total_load_time'] for x in selenium_results[test_name]]
+
+def merge_context(*contexts):
+    x = {}
+    for context in contexts:
+        x.update(context)
+    return x
