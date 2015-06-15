@@ -1,14 +1,10 @@
 from collections import OrderedDict
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.core.urlresolvers import reverse
 import ujson
 from metrics import Collection
 from metrics.queries import Query
 
-from testrunner.tasks.http_get import MWProfilerGet, HttpGet
-from testrunner.tasks.phantomas_get import PhantomasGet
-from testrunner.tasks.process_results import ProcessResponses
 
 
 def build_absolute_uri(uri):
