@@ -6,6 +6,7 @@ import ujson
 from testrunner.tasks.http_get import MWProfilerGet, HttpGet
 from testrunner.tasks.phantomas_get import PhantomasGet
 from testrunner.tasks.process_results import ProcessResponses
+from testrunner.tasks.selenium_get import SeleniumGet
 
 
 def build_absolute_uri(uri):
@@ -19,6 +20,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--runs', default=2, type=int)
+        parser.add_argument('--seleniumout', type=str)
         parser.add_argument('--out', type=str)
 
     def handle(self, *args, **options):
@@ -36,7 +38,14 @@ class Command(BaseCommand):
         hg = HttpGet()
         hg_metrics = hg.run(**params)
 
-        data = [pg_metrics, mg_metrics, hg_metrics]
+        sg = SeleniumGet()
+        sg_metrics = sg.run(**params)
+
+        if options['seleniumout']:
+            with open(options['seleniumout'], 'w') as f:
+                ujson.dump(sg_metrics,f)
+
+        data = [pg_metrics, mg_metrics, hg_metrics, sg_metrics]
 
         # print data
 

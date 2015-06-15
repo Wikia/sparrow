@@ -273,11 +273,11 @@ class SeleniumMetricGenerator(MetricGenerator):
 
     @staticmethod
     def metric_values_single_step(selenium_results, test_name, metric):
-        return [x['result']['steps'][0][metric] for x in selenium_results[test_name]]
+        return [(x['result']['steps'][0][metric], None) for x in selenium_results[test_name]]
 
     @staticmethod
     def total_load_time_all_steps(selenium_results, test_name):
-        return [x['result']['total_load_time'] for x in selenium_results[test_name]]
+        return [(x['result']['total_load_time'], None) for x in selenium_results[test_name]]
 
 def merge_context(*contexts):
     x = {}
