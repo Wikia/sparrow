@@ -58,6 +58,7 @@ class Value(object):
 class Stats(object):
     def __init__(self, raw_values):
         raw_values = list(raw_values)
+        self.values = raw_values
 
         self.count = len(raw_values)
         self.pct_5 = 0.0

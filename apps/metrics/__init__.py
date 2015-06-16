@@ -108,8 +108,3 @@ class Metric(object):
                 (value_data['value'], value_data['info'])
                 for value_data in data['values']
             ])
-
-
-
-
-

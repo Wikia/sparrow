@@ -10,7 +10,7 @@ class Query(object):
     def where_eq(self, field, value):
         self.where_clause.append({
             'text': '{} = "{}"'.format(field, value),
-            'fn': lambda c: c[field] == value
+            'fn': lambda c: c.get(field, None) == value
         })
         return self
 

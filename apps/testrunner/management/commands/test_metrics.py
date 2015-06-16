@@ -16,7 +16,7 @@ def build_absolute_uri(uri):
 
 
 class Command(BaseCommand):
-    help = 'Runs phantomas and prints all metrics gathered'
+    help = 'Runs phantomas and prints all gathered metrics'
 
     def add_arguments(self, parser):
         parser.add_argument('--runs', default=2, type=int)

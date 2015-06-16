@@ -1,5 +1,6 @@
+from collections import defaultdict
 import re
-from metrics import Collection, Metric, MetricType
+from metrics import MetricType, Collection, Metric
 
 
 class MetricGenerator(object):
@@ -29,6 +30,7 @@ class PhantomasMetricGenerator(MetricGenerator):
         'ajaxRequests': 'browser.net.ajax.requests',
         'base64Count': 'browser.assets.base64.count',
         'base64Size': 'size:browser.assets.base64.size',
+        'bodySize': 'size:browser.assets.total_size',
         'cssCount': 'browser.assets.css.count',
         'cssSize': 'size:browser.assets.css.size',
         'domComplete': 'time:browser.dom.event.complete',
@@ -36,7 +38,7 @@ class PhantomasMetricGenerator(MetricGenerator):
         'domContentLoadedEnd': 'time:browser.dom.event.content_loaded.end',
         'domInteractive': 'time:browser.dom.event.interactive',
         'domains': 'browser.net.domains',
-        'firstPaint': 'browser.dom.event.first_paint',
+        'firstPaint': 'time:browser.dom.event.first_paint',
         'htmlCount': 'browser.assets.html.count',
         'htmlSize': 'size:browser.assets.html.size',
         'imageCount': 'browser.assets.image.count',
@@ -127,7 +129,7 @@ class ProfilerMetricGenerator(MetricGenerator):
             'memcached.dupe_count': MetricType.COUNT,
         }
 
-        name_template = 'mediawiki.{}'
+        name_template = 'server.app.{}'
         metrics = {
             name: Metric(name_template.format(name), context, type)
             for name, type in metric_defs.items()
@@ -136,7 +138,7 @@ class ProfilerMetricGenerator(MetricGenerator):
         for single_run in data:
             data = self.parse_data(single_run['profiler_data'])
             for name, raw_value in data.items():
-                metrics[name].add_value(data, None)
+                metrics[name].add_value(raw_value, None)
 
         return Collection(metrics.values())
 
@@ -210,6 +212,11 @@ class RequestsMetricGenerator(MetricGenerator):
             for single_run in data
         ]))
 
+        metrics.add(Metric('server.app.response_size', context, MetricType.SIZE, values=[
+            (len(single_run['content']), None)
+            for single_run in data
+        ]))
+
         return metrics
 
 
@@ -219,48 +226,44 @@ class SeleniumMetricGenerator(MetricGenerator):
     def extract(self, context, data):
         context['origin'] = 'selenium'
 
-        noexternals_context = merge_context(context,{
+        noexternals_context = merge_context(context, {
             'mode': 'noexternals'
         })
 
-        noads_context = merge_context(context,{
+        noads_context = merge_context(context, {
             'mode': 'noads'
         })
 
-        anon_search_context = merge_context(context,{
-            'scenario': 'search',
-            'user': 'anon'
+        anon_search_context = merge_context(context, {
+            'scenario': 'anon_visit',
         })
+        anon_search_context.pop('url', None)
 
-        user_search_context = merge_context(context,{
-            'scenario': 'search',
-            'user': 'user'
+        user_search_context = merge_context(context, {
+            'scenario': 'user_visit',
         })
+        user_search_context.pop('url', None)
+
+        context['mode'] = 'default'
 
         metrics = Collection()
-        # noexternals
-        metrics.add(Metric(
-            'browser.dom.event.load', noexternals_context, MetricType.TIME,
-            values=self.metric_values_single_step(
-                data, 'oasis_perftest_medium_article_no_externals', 'total_load_time')))
-        metrics.add(Metric(
-            'browser.dom.event.complete', noexternals_context, MetricType.TIME,
-            values=self.metric_values_single_step(
-                data, 'oasis_perftest_medium_article_no_externals', 'dom_complete_time')))
-        # noads
-        metrics.add(Metric(
-            'browser.dom.event.load', noads_context, MetricType.TIME,
-            values=self.metric_values_single_step(
-                data, 'oasis_perftest_medium_article_no_ads', 'total_load_time')))
-        metrics.add(Metric(
-            'browser.dom.event.complete', noads_context, MetricType.TIME,
-            values=self.metric_values_single_step(
-                data, 'oasis_perftest_medium_article_no_ads', 'dom_complete_time')))
 
-        metrics.add(Metric(
-            'browser.dom.event.complete', noads_context, MetricType.TIME,
-            values=self.metric_values_single_step(
-                data, 'oasis_perftest_medium_article_no_ads', 'dom_complete_time')))
+        types = [
+            (noexternals_context, 'oasis_perftest_medium_article_no_externals'),
+            (noads_context, 'oasis_perftest_medium_article_no_ads'),
+            (context, 'load_provided_url'),
+        ]
+        metric_defs = [
+            ('browser.transaction.time', MetricType.TIME, 'total_load_time'),
+            ('browser.dom.event.interactive', MetricType.TIME, 'interactive_time'),
+            ('browser.dom.event.content_loaded', MetricType.TIME, 'dom_content_loaded_time'),
+            ('browser.dom.event.complete', MetricType.TIME, 'dom_complete_time'),
+        ]
+        for test_context, test_name in types:
+            for out_name, data_type, in_name in metric_defs:
+                self.fan_out_by_url_and_push_metrics(
+                    metrics, out_name, context, data_type,
+                    values=self.metric_values_single_step_with_urls(data, test_name, in_name))
         # total time
         metrics.add(Metric(
             'browser.transaction.time', anon_search_context, MetricType.TIME,
@@ -272,12 +275,25 @@ class SeleniumMetricGenerator(MetricGenerator):
         return metrics
 
     @staticmethod
-    def metric_values_single_step(selenium_results, test_name, metric):
-        return [(x['result']['steps'][0][metric], None) for x in selenium_results[test_name]]
+    def fan_out_by_url_and_push_metrics(metrics, out_name, base_context, data_type, values):
+        by_url = defaultdict(list)
+        for url, value in values:
+            by_url[url].append(value)
+
+        for url, values in by_url.items():
+            context = base_context.copy()
+            context['url'] = url
+            metrics.add(Metric(out_name, context, data_type, values=values))
+
+    @staticmethod
+    def metric_values_single_step_with_urls(selenium_results, test_name, metric):
+        return [(x['result']['steps'][0]['url'], (x['result']['steps'][0][metric], None)) for x in
+                selenium_results[test_name]]
 
     @staticmethod
     def total_load_time_all_steps(selenium_results, test_name):
         return [(x['result']['total_load_time'], None) for x in selenium_results[test_name]]
+
 
 def merge_context(*contexts):
     x = {}

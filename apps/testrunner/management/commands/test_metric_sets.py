@@ -2,9 +2,9 @@ from collections import OrderedDict
 from django.conf import settings
 from django.core.management.base import BaseCommand
 import ujson
+import requests
 from metrics import Collection
-from metrics.queries import Query
-
+from testrunner.metric_sets import BasicMetricSet
 
 
 def build_absolute_uri(uri):
@@ -14,32 +14,32 @@ def build_absolute_uri(uri):
 
 
 class Command(BaseCommand):
-    help = 'Runs sample query against collected metrics'
+    help = 'Shows metrics summary for given test'
 
     def add_arguments(self, parser):
-        parser.add_argument('datafile', type=str)
+        parser.add_argument('--resultid', type=int)
+        parser.add_argument('--datafile', type=str)
 
     def handle(self, *args, **options):
-        with open(options['datafile'], 'r') as f:
-            data = ujson.load(f)
+        if options['datafile']:
+            with open(options['datafile'], 'r') as f:
+                data = ujson.load(f)
+        elif options['resultid']:
+            url = build_absolute_uri('/api/v1/results/{}/'.format(options['resultid']))
+            response = requests.get(url)
+            data = response.json()['results']
+        else:
+            raise RuntimeError('You need to specify either --resultid or --datafile')
 
         all_metrics = Collection.unserialize(data)
 
-        query = Query().where_eq('id', 'browser.dom.event.interactive')
+        basic_metric_set = BasicMetricSet(all_metrics)
 
-        result_set = query.execute(all_metrics)
-        dump_result_set(result_set)
+        basic_metrics = basic_metric_set.items
 
-        # for result in result_set:
-        #     print list(result.values)
-        #     print result.raw_values
-        #     print 'mean', result.stats.mean
-        #     print 'median', result.stats.median
-        #     print 'stddev', result.stats.stddev
-        #     print '5% percentile', result.stats.pct_5
-        #     print '50% percentile', result.stats.pct_50
-        #     print '90% percentile', result.stats.pct_90
-        #     print '95% percentile', result.stats.pct_95
+        for k, v  in basic_metrics.items():
+            print 'METRIC: {}'.format(k)
+            dump_stats(v)
 
 
 def dump_result_set(result_set, indent=''):
@@ -97,6 +97,18 @@ def dump_values(result, indent=''):
     raw_values = sorted(result.raw_values)
     print indent + '  {}'.format(raw_values)
     stats = result.stats
+    print indent + '  count = {}        median = {}         stddev = {}'.format(stats.count, stats.median, stats.stddev)
+    print indent + '       5%                                 50%                              90%   95%    '
+    print indent + '  -----|----------------------------------|--------------------------------|-----|------'
+    print indent + '       {:<10}                         {:<10}                             {:<10}'.format(
+        stats.pct_5, stats.pct_50, stats.pct_95)
+    print indent + '                                                                           {:<10}'.format(
+        stats.pct_90)
+
+def dump_stats(stats, indent=''):
+    print indent + 'VALUES'
+    raw_values = sorted(stats.values)
+    print indent + '  {}'.format(raw_values)
     print indent + '  count = {}        median = {}         stddev = {}'.format(stats.count, stats.median, stats.stddev)
     print indent + '       5%                                 50%                              90%   95%    '
     print indent + '  -----|----------------------------------|--------------------------------|-----|------'
