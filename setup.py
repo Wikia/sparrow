@@ -1,0 +1,31 @@
+from distutils.core import setup
+
+setup(
+    name='sparrow',
+    version='0.0.1',
+    package_data={'sparrow': ['*'], },
+    author='Wikia',
+    description='Performance monitoring tool',
+    install_requires=[
+        'six==1.9.0',
+        'django==1.8.2',
+        'djangorestframework==3.1.2',
+        'Unipath==1.1',
+        'dj-database-url==0.3.0',
+        'psycopg2==2.6',
+        'django-enumfield==1.2.1',
+        'drf_ujson==1.2',
+        'django-rest-swagger==0.3.0',
+        'celery[redis]==3.1.18',
+        'jsonfield==1.0.3',
+        'paramiko==1.15.2',
+        'requests==2.7.0',
+        'colorlog==2.6.0',
+        'numpy==1.9.2',
+        'phantomas==0.2.2',
+        'django-debug-toolbar==1.3.0',
+        'django-extensions==1.5.5',
+        'django-jenkins==0.17.0',
+        'selenium==2.45.0',
+    ],
+)
