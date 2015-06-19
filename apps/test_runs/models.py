@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from django.dispatch import receiver
+from django.dispatch import receiver, Signal
 from django.utils.translation import ugettext as _
 from django_enumfield import enum
 
@@ -10,6 +10,9 @@ from tasks.models import Task
 from tasks.models import TaskStatus
 from tasks.models import task_status_changed
 from common.validators import GithubRevisionValidator
+
+
+test_run_status_changed = Signal(providing_args=['instance', ])
 
 class TestRunStatus(enum.Enum):
     PENDING = 0
@@ -38,6 +41,20 @@ class TestRun(models.Model):
     )
     status = enum.EnumField(TestRunStatus, default=TestRunStatus.PENDING)
     created = models.DateTimeField(auto_now_add=True)
+
+    __original_status = None
+
+    def save(self, *args, **kwargs):
+
+        super(TestRun, self).save(*args, **kwargs)
+
+        if self.__original_status != self.status:
+            test_run_status_changed.send(self.__class__, instance=self)
+            self.__original_status = self.status
+
+    @property
+    def completed(self):
+        return self.status in (TestRunStatus.DONE, TestRunStatus.ERROR)
 
     def __repr__(self):
         return "{0}(#{1}): {2}@{3}".format(
