@@ -62,13 +62,14 @@ class ExecuteQuery(object):
 
         for metric in self.collection:
             context = metric.context.copy()
-            if any([not filter_fn(context) for filter_fn in context_filters]):
+            filter_results = [filter_fn(context) for filter_fn in context_filters]
+            if not all(filter_results):
                 continue
-            bucket_id = tuple((
+            bucket_id = tuple(
                 (k, v)
                 for k, v in sorted(context.items(), key=lambda kv: kv[0])
                 if k not in ignore_context_fields
-            ))
+            )
             buckets[bucket_id].append(metric)
 
         results = []
