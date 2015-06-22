@@ -4,7 +4,7 @@ from metrics.values import ValueSet, Value
 class MetricType:
     UNKNOWN = 'unknown'
     TIME = 'time'
-    SIZE = 'size'
+    BYTES = 'bytes'
     COUNT = 'count'
     QUERY_LIST = 'query_list'
 

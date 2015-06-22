@@ -29,10 +29,10 @@ class PhantomasMetricGenerator(MetricGenerator):
         'DOMqueries': 'browser.dom.operations.queries',
         'ajaxRequests': 'browser.net.ajax.requests',
         'base64Count': 'browser.assets.base64.count',
-        'base64Size': 'size:browser.assets.base64.size',
-        'bodySize': 'size:browser.assets.total_size',
+        'base64Size': 'bytes:browser.assets.base64.size',
+        'bodySize': 'bytes:browser.assets.total_size',
         'cssCount': 'browser.assets.css.count',
-        'cssSize': 'size:browser.assets.css.size',
+        'cssSize': 'bytes:browser.assets.css.size',
         'domComplete': 'time:browser.dom.event.complete',
         'domContentLoaded': 'time:browser.dom.event.content_loaded',
         'domContentLoadedEnd': 'time:browser.dom.event.content_loaded.end',
@@ -40,15 +40,15 @@ class PhantomasMetricGenerator(MetricGenerator):
         'domains': 'browser.net.domains',
         'firstPaint': 'time:browser.dom.event.first_paint',
         'htmlCount': 'browser.assets.html.count',
-        'htmlSize': 'size:browser.assets.html.size',
+        'htmlSize': 'bytes:browser.assets.html.size',
         'imageCount': 'browser.assets.image.count',
-        'imageSize': 'time:browser.assets.image.size',
+        'imageSize': 'bytes:browser.assets.image.size',
         'jsCount': 'browser.assets.js.count',
-        'jsSize': 'size:browser.assets.js.size',
+        'jsSize': 'bytes:browser.assets.js.size',
         'jsonCount': 'browser.assets.json.count',
-        'jsonSize': 'size:browser.assets.json.size',
+        'jsonSize': 'bytes:browser.assets.json.size',
         'otherCount': 'browser.assets.other.count',
-        'otherSize': 'size:browser.assets.other.size',
+        'otherSize': 'bytes:browser.assets.other.size',
         'repaints': 'browser.screen.repaints',
         'timeToFirstByte': 'time:browser.net.first_byte',
         'timeToFirstCss': 'time:browser.net.first_css',
@@ -56,9 +56,9 @@ class PhantomasMetricGenerator(MetricGenerator):
         'timeToFirstJs': 'time:browser.net.first_js',
         'timeToLastByte': 'time:browser.net.last_byte',
         'videoCount': 'browser.assets.video.count',
-        'videoSize': 'size:browser.assets.video.size',
+        'videoSize': 'bytes:browser.assets.video.size',
         'webfontCount': 'browser.assets.webfont.count',
-        'webfontSize': 'size:browser.assets.webfont.size',
+        'webfontSize': 'bytes:browser.assets.webfont.size',
     }
 
 
@@ -212,7 +212,7 @@ class RequestsMetricGenerator(MetricGenerator):
             for single_run in data
         ]))
 
-        metrics.add(Metric('server.app.response_size', context, MetricType.SIZE, values=[
+        metrics.add(Metric('server.app.response_size', context, MetricType.BYTES, values=[
             (len(single_run['content']), None)
             for single_run in data
         ]))
