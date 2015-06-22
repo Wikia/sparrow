@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import pprint
 
 from model_mommy import mommy
 import mock
@@ -10,6 +11,7 @@ from django.core.urlresolvers import reverse
 from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
+from metrics.values import Stats
 
 from tasks.models import TaskStatus
 from tests.mocks.ssh import SSHConnectionMock
@@ -71,6 +73,16 @@ class TestResultTestCase(APITestCase):
     @responses.activate
     @post_response
     def test_run_task(self, post_callback):
+        def extract_values_from_results(origin, id):
+            series = [x for x in results
+                      if x['context']['id'] == id
+                      if x['context']['origin'] == origin]
+            self.assertEqual(len(series), 1, '{}:{} gave {} value series (1 expected)'.format(origin, id, len(series)))
+            return [x['value'] for x in series[0]['values']]
+
+        def get_stats_from_requests(id, origin):
+            values = extract_values_from_results(id, origin)
+            return Stats(values)
         url = reverse('task-run', args=[self.task_to_delete.id, ])
         api_uri = re.compile(r'https?://testserver')
 
@@ -87,25 +99,40 @@ class TestResultTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED,
                          msg='Run task failed: {0}'.format(response.data))
 
-        self.assertEqual(self.response_data['results']['response_time']['count'], 10)
-        self.assertEqual(self.response_data['results']['response_time']['highest'], 123.0)
-        self.assertEqual(self.response_data['results']['response_time']['lowest'], 123.0)
+        results = self.response_data['results']
 
-        self.assertEqual(self.response_data['results']['backend_metrics']['memc_dupes']['count'], 10)
-        self.assertEqual(self.response_data['results']['backend_metrics']['memc_dupes']['highest'], 4.0)
-        self.assertEqual(self.response_data['results']['backend_metrics']['memc_misses']['count'], 10)
-        self.assertEqual(self.response_data['results']['backend_metrics']['memc_misses']['highest'], 1.0)
-        self.assertEqual(self.response_data['results']['backend_metrics']['query_master']['highest'], 314.0)
-        self.assertEqual(self.response_data['results']['backend_metrics']['query_slave']['highest'], 11.0)
-        self.assertEqual(self.response_data['results']['backend_metrics']['query_time']['highest'], 0.363579)
-        self.assertEqual(self.response_data['results']['backend_metrics']['server_time']['highest'], 1.869824)
+        response_times = get_stats_from_requests('requests', 'server.app.response_time')
+        self.assertEqual(response_times.count, 10)
+        self.assertEqual(response_times.min, 123.0)
+        self.assertEqual(response_times.max, 123.0)
 
-        self.assertEqual(self.response_data['results']['phantomas_metrics']['js_size']['highest'], 927221.0)
-        self.assertEqual(self.response_data['results']['phantomas_metrics']['content_length']['highest'], 1922742.0)
-        self.assertEqual(self.response_data['results']['phantomas_metrics']['css_count']['highest'], 5.0)
-        self.assertEqual(self.response_data['results']['phantomas_metrics']['body_size']['highest'], 1304562.0)
-        self.assertEqual(self.response_data['results']['phantomas_metrics']['html_size']['highest'], 124541.0)
-        self.assertEqual(self.response_data['results']['phantomas_metrics']['other_count']['highest'], 19.0)
+        memcached_dupes = get_stats_from_requests('mw_profiler', 'server.app.memcached.dupe_count')
+        memcached_misses = get_stats_from_requests('mw_profiler', 'server.app.memcached.miss_count')
+        queries_master = get_stats_from_requests('mw_profiler', 'server.app.database.queries.master_count')
+        queries_slave = get_stats_from_requests('mw_profiler', 'server.app.database.queries.slave_count')
+        queries_time = get_stats_from_requests('mw_profiler', 'server.app.database.queries.time')
+        response_times = get_stats_from_requests('mw_profiler', 'server.app.response_time')
+        self.assertEqual(memcached_dupes.count, 10)
+        self.assertEqual(memcached_dupes.max, 4.0)
+        self.assertEqual(memcached_misses.count, 10)
+        self.assertEqual(memcached_misses.max, 1.0)
+        self.assertEqual(queries_master.max, 314.0)
+        self.assertEqual(queries_slave.max, 11.0)
+        self.assertEqual(queries_time.max, 0.363579)
+        self.assertEqual(response_times.max, 1.869824)
+
+        js_size = get_stats_from_requests('phantomas', 'browser.assets.js.size')
+        content_length = get_stats_from_requests('phantomas', 'raw.phantomas.contentLength')
+        css_count = get_stats_from_requests('phantomas', 'browser.assets.css.count')
+        body_size = get_stats_from_requests('phantomas', 'browser.assets.total_size')
+        html_size = get_stats_from_requests('phantomas', 'browser.assets.html.size')
+        other_count = get_stats_from_requests('phantomas', 'browser.assets.other.count')
+        self.assertEqual(js_size.max, 927221.0)
+        self.assertEqual(content_length.max, 1922742.0)
+        self.assertEqual(css_count.max, 5.0)
+        self.assertEqual(body_size.max, 1304562.0)
+        self.assertEqual(html_size.max, 124541.0)
+        self.assertEqual(other_count.max, 19.0)
 
     def test_update_result(self):
         url = reverse('task-detail', args=[self.task_to_delete.id, ])
@@ -119,4 +146,5 @@ class TestResultTestCase(APITestCase):
         url = reverse('task-detail', args=[self.task_to_delete.id, ])
 
         response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, msg='Delete failed: {0}'.format(response.data))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT,
+                         msg='Delete failed: {0}'.format(response.data))

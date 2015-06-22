@@ -32,7 +32,12 @@ class PhantomasGet(celery_app.Task):
         key = camel2snake(self.__class__.__name__)
 
         return {
-            key: [
+            'generator': 'phantomas',
+            'context': {
+                'url': url,
+                'origin': 'phantomas'
+            },
+            'data': [
                 {
                     'generator': single_run.get_generator(),
                     'metrics': single_run.get_metrics(),

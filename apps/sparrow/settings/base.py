@@ -129,6 +129,7 @@ INSTALLED_APPS = (
     'results',
     'tasks',
     'testrunner',
+    'metrics',
 )
 
 # Django REST Framework Settings
@@ -187,6 +188,11 @@ LOGGING = {
             'propagate': True,
         },
         'testrunner': {
+            'handlers': ['log_to_stdout'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        '': {
             'handlers': ['log_to_stdout'],
             'level': 'DEBUG',
             'propagate': True,

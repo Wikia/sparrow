@@ -23,7 +23,7 @@ class TestResultTestCase(APITestCase):
                              test_name='perftest_oasis_anon_search_pageviews', params={'hostname' : hostname}),
             dict(test_func='perftest_oasis_user_search_pageviews',
                              test_name='perftest_oasis_user_search_pageviews', params={'hostname' : hostname})
-        ])['selenium']
+        ])['data']
 
         self.assertEqual(len(result_list), 3)
         self.assertEqual(result_list['enter_page'][0]['result']['total_load_time'], 7)

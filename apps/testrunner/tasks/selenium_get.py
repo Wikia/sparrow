@@ -64,7 +64,13 @@ class SeleniumGet(celery_app.Task):
                 result_for_test.append({'run': turn, 'result': test_result})
             result[test['test_name']] = result_for_test
 
-        return {'selenium': result}
+        return {
+            'generator': 'selenium',
+            'context': {
+                'origin': 'selenium'
+            },
+            'data': result
+        }
 
     def run_test(self, test):
         logger.info('Running selenium test: ' + test['test_name'])
