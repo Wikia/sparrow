@@ -43,10 +43,6 @@ class HttpGet(celery_app.Task):
 
 
 class MWProfilerGet(HttpGet):
-    __PROFILER_REGEXP = re.compile(r'^\s*([\d\.]+\%)\s+([\d\.]+)\s+(\d+)\s+\-\s+([^\s].*[^\s])\s*$')
-    __MEMCACHE_REGEXP = re.compile(r'MWMemcached::get.*!(HIT|MISS|DUPE)')
-    __QUERY_REGEXP = re.compile(r'^\s*query(?:-m)?:\s*(.*)\s*$')
-
     def run(self, url, retries=1, query_params=None):
         if query_params is None:
             query_params = {}
