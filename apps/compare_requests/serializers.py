@@ -13,7 +13,7 @@ class CompareRequestSerializer(serializers.HyperlinkedModelSerializer):
                   'head_test_run')
 
 
-class CompareRequestCreateSerializer(serializers.HyperlinkedModelSerializer):
+class CreateCompareRequestSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = CompareRequest
         fields = ('repo', 'pull_request_num')

@@ -7,7 +7,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import CompareRequestSerializer, CompareRequestCreateSerializer
+from .serializers import CompareRequestSerializer, CreateCompareRequestSerializer
 from .models import CompareRequest
 from test_runs.models import TestRun
 
@@ -62,7 +62,7 @@ class CompareRequestViewSet(viewsets.ModelViewSet):
     serializer_class = CompareRequestSerializer
 
     def create(self, request, *args, **kwargs):
-        serializer = CompareRequestCreateSerializer(data=request.data, context=self.get_serializer_context())
+        serializer = CreateCompareRequestSerializer(data=request.data, context=self.get_serializer_context())
         serializer.is_valid(raise_exception=True)
 
         repo_name = serializer.data['repo']
