@@ -5,6 +5,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from rest_framework import routers
 
+from compare_requests.views import CompareRequestViewSet
 from test_runs.views import TestRunViewSet
 from results.views import TestResultViewSet
 from results.views import TestRawResultViewSet
@@ -12,6 +13,7 @@ from tasks.views import TaskViewSet
 
 
 router = routers.DefaultRouter()
+router.register(r'compare_requests', CompareRequestViewSet)
 router.register(r'test_runs', TestRunViewSet)
 router.register(r'results', TestResultViewSet)
 router.register(r'raw_results', TestRawResultViewSet)

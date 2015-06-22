@@ -130,6 +130,7 @@ INSTALLED_APPS = (
     'tasks',
     'testrunner',
     'metrics',
+    'compare_requests',
 )
 
 # Django REST Framework Settings
@@ -223,3 +224,5 @@ SPARROW_TEST_RUNNER = {
 }
 
 CRHOMEDRIVER_PATH = '/usr/lib/chromium-browser/chromedriver'
+
+GITHUB_TOKEN  = get_env_var('SPARROW_GITHUB_TOKEN')

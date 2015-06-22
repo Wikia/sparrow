@@ -2,6 +2,13 @@ import re
 
 from .base import *
 
+LOGGING['loggers'][''] = {
+    'handlers': ['log_to_stdout'],
+    'level': 'DEBUG',
+    'propagate': True,
+}
+import logging.config
+logging.config.dictConfig(LOGGING)
 
 DEBUG = TEMPLATE_DEBUG = True
 
@@ -40,6 +47,5 @@ JENKINS_TASKS = (
     'django_jenkins.tasks.run_pep8',
     'django_jenkins.tasks.run_pyflakes'
 )
-
 
 INSTALLED_APPS += DEBUG_APPS

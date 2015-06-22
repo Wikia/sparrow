@@ -79,6 +79,8 @@ Here is a list of the required environment variables:
 
 * SPARROW_RUNNER_PHANTOMAS
 
+* SPARROW_GITHUB_TOKEN
+
 The following environment variables are required for Celery (pre-configured for Redis):
 
 * SPARROW_CELERY_BROKER_URL

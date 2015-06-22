@@ -82,3 +82,6 @@ numpy==1.9.2
 
 # phantomas
 phantomas==0.2.2
+
+# PyGithub
+PyGithub==1.25.2
