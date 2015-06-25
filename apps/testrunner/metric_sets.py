@@ -68,7 +68,7 @@ class BasicMetricSet(object):
         })
 
         self.items = {}
-        for k, v in __dict__.items():
+        for k, v in self.__dict__.items():
             if isinstance(v, Stats):
                 self.items[k] = v
 

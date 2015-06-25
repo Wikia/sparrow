@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Q
 from django.dispatch import receiver
 from common.github_integration import GitHub
+from metrics.compare import Compare
 
 from test_runs.models import test_run_status_changed, TestRunStatus, TestRun
 
@@ -51,7 +52,10 @@ class CompareRequest(models.Model):
         """
         Generate comparison text
         """
-        comparison_text = "Performance comparison results placeholder.\nTests executed: {} and {}".format(
+        comparison = Compare([self.base_test_run,self.head_test_run]).get_comparison()
+
+        comparison_text = "Comparison results:\n{}\nTests executed: {} and {}".format(
+            comparison.get_text(),
             self.base_test_run_id, self.head_test_run_id
         )
         return comparison_text
