@@ -5,6 +5,7 @@ from django.db import models
 from django.dispatch import receiver, Signal
 from django.utils.translation import ugettext as _
 from django_enumfield import enum
+from metrics import Collection
 
 from tasks.models import Task
 from tasks.models import TaskStatus
@@ -45,6 +46,7 @@ class TestRun(models.Model):
     __original_status = None
 
     def save(self, *args, **kwargs):
+        is_new = self.id is None
 
         super(TestRun, self).save(*args, **kwargs)
 
@@ -52,9 +54,21 @@ class TestRun(models.Model):
             test_run_status_changed.send(self.__class__, instance=self)
             self.__original_status = self.status
 
+        if is_new:
+            Task(
+                test_run=self,
+                status=TaskStatus.PENDING
+            ).save()
+
     @property
     def completed(self):
         return self.status in (TestRunStatus.DONE, TestRunStatus.ERROR)
+
+    def get_metrics(self):
+        results = self.results.all()[0:1]
+        if len(results) == 0:
+            return None
+        return Collection.unserialize(results[0].results)
 
     def __repr__(self):
         return "{0}(#{1}): {2}@{3}".format(
