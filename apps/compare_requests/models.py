@@ -54,9 +54,8 @@ class CompareRequest(models.Model):
         """
         comparison = Compare([self.base_test_run,self.head_test_run]).get_comparison()
 
-        comparison_text = "Comparison results:\n{}\nTests executed: {} and {}".format(
-            comparison.get_text(),
-            self.base_test_run_id, self.head_test_run_id
+        comparison_text = "Performance comparison:\n\n{}".format(
+            comparison.get_github_markdown()
         )
         return comparison_text
 
