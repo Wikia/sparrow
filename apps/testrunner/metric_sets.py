@@ -48,13 +48,13 @@ class BasicMetricSet(object):
             'mode': 'default',
             'url': url,
         })
-        self.dom_content_loaded_phantomas = self.get_stats({
+        self.dom_content_loaded_selenium = self.get_stats({
             'id': 'browser.dom.event.content_loaded',
             'origin': 'selenium',
             'mode': 'default',
             'url': url,
         })
-        self.dom_complete_phantomas = self.get_stats({
+        self.dom_complete_selenium = self.get_stats({
             'id': 'browser.dom.event.complete',
             'origin': 'selenium',
             'mode': 'default',
