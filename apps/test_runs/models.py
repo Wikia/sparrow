@@ -65,7 +65,10 @@ class TestRun(models.Model):
         return self.status in (TestRunStatus.DONE, TestRunStatus.ERROR)
 
     def get_metrics(self):
-        return Collection.unserialize(self.results.all()[0].results)
+        results = self.results.all()[0:1]
+        if len(results) == 0:
+            return None
+        return Collection.unserialize(results[0].results)
 
     def __repr__(self):
         return "{0}(#{1}): {2}@{3}".format(
