@@ -28,18 +28,18 @@ class TestRunStatus(enum.Enum):
         ERROR: _('Error'),
     }
 
-
 class TestRun(models.Model):
     id = models.AutoField(primary_key=True)
     test_run_uri = models.URLField()
     main_revision = models.CharField(
-        max_length=10,
+        max_length=40,
         validators=[GithubRevisionValidator, ]
     )
     secondary_revision = models.CharField(
-        max_length=10,
+        max_length=40,
         validators=[GithubRevisionValidator, ]
     )
+    retries = models.IntegerField(null=True)
     status = enum.EnumField(TestRunStatus, default=TestRunStatus.PENDING)
     created = models.DateTimeField(auto_now_add=True)
 
@@ -59,6 +59,14 @@ class TestRun(models.Model):
                 test_run=self,
                 status=TaskStatus.PENDING
             ).save()
+
+    @property
+    def app_commit(self):
+        return self.main_revision
+
+    @property
+    def config_commit(self):
+        return self.secondary_revision
 
     @property
     def completed(self):
