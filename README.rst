@@ -129,3 +129,4 @@ Django's ``manage.py`` script is located in the ``apps`` directory. Any
 **NOTE:** If you've set the ``DJANGO_SETTINGS_MODULE`` environment variable, and
 set your ``PYTHONPATH``, you can omit the ``--settings=...`` portion of any
 ``manage.py`` commands, and substitute ``django-admin.py`` for ``manage.py``.
+
