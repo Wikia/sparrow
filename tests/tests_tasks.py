@@ -102,7 +102,7 @@ class TestResultTestCase(APITestCase):
         results = self.response_data['results']
 
         response_times = get_stats_from_requests('requests', 'server.app.response_time')
-        self.assertEqual(response_times.count, 3)
+        self.assertEqual(response_times.count, 10)
         self.assertEqual(response_times.min, 123.0)
         self.assertEqual(response_times.max, 123.0)
 
@@ -112,9 +112,9 @@ class TestResultTestCase(APITestCase):
         queries_slave = get_stats_from_requests('mw_profiler', 'server.app.database.queries.slave_count')
         queries_time = get_stats_from_requests('mw_profiler', 'server.app.database.queries.time')
         response_times = get_stats_from_requests('mw_profiler', 'server.app.response_time')
-        self.assertEqual(memcached_dupes.count, 3)
+        self.assertEqual(memcached_dupes.count, 10)
         self.assertEqual(memcached_dupes.max, 4.0)
-        self.assertEqual(memcached_misses.count, 3)
+        self.assertEqual(memcached_misses.count, 10)
         self.assertEqual(memcached_misses.max, 1.0)
         self.assertEqual(queries_master.max, 314.0)
         self.assertEqual(queries_slave.max, 11.0)

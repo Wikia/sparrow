@@ -17,12 +17,18 @@ logger = get_task_logger(__name__)
 
 
 class SimpleTestSuite(object):
+    DEFAULT_RETRIES_COUNT = 10
+
     def __init__(self, *args, **kwargs):
         test_runner_config = settings.SPARROW_TEST_RUNNER
         self.DEPLOY_HOST = test_runner_config['deploy_host']['hostname']
         self.TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
 
-    def run(self, retries, **kwargs):
+    def run(self, **kwargs):
+        retries = kwargs.pop('retries')
+        if retries is None:
+            retries = self.DEFAULT_RETRIES_COUNT
+
         logger.info('Started execution of task #{} (x{})'.format(kwargs['task_uri'], retries))
         logger.debug('params = ' + ujson.dumps(kwargs))
 
