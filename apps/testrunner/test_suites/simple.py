@@ -17,7 +17,7 @@ logger = get_task_logger(__name__)
 
 
 class SimpleTestSuite(object):
-    DEFAULT_RETRIES_COUNT = 5
+    DEFAULT_RETRIES_COUNT = 10
 
     def __init__(self, *args, **kwargs):
         test_runner_config = settings.SPARROW_TEST_RUNNER
