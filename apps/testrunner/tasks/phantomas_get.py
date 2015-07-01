@@ -6,12 +6,13 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 
 from testrunner import app as celery_app
-from common.utils import camel2snake
 
 logger = get_task_logger(__name__)
 
 
 class PhantomasGet(celery_app.Task):
+    CONSECUTIVE_FAILURES_LIMIT = 5
+
     def __init__(self, *args, **kwargs):
         self.__phantomas_path = settings.SPARROW_TEST_RUNNER['phantomas_path']
 
@@ -20,16 +21,20 @@ class PhantomasGet(celery_app.Task):
 
         phantomas_runner = phantomas.Phantomas(
             url=url,
-            runs=retries,
+            runs=1,
             exec_path=self.__phantomas_path
         )
-        phantomas_result = phantomas_runner.run()
-        if retries == 1:
-            all_runs = [phantomas_result, ]
-        else:
-            all_runs = phantomas_result.runs
 
-        key = camel2snake(self.__class__.__name__)
+        all_runs = []
+        consecutive_fails = 0
+        while len(all_runs) < retries:
+            try:
+                all_runs.append(phantomas_runner.run())
+                consecutive_fails = 0
+            except:
+                consecutive_fails += 1
+                if consecutive_fails >= self.CONSECUTIVE_FAILURES_LIMIT:
+                    raise
 
         return {
             'generator': 'phantomas',
