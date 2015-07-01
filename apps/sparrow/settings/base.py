@@ -224,6 +224,6 @@ SPARROW_TEST_RUNNER = {
     'use_virtual_display': 'DISPLAY' not in os.environ,
 }
 
-CRHOMEDRIVER_PATH = '/usr/lib/chromium-browser/chromedriver'
+CRHOMEDRIVER_PATH = get_env_var('SPARROW_RUNNER_CHROMEDRIVER')
 
 GITHUB_TOKEN  = get_env_var('SPARROW_GITHUB_TOKEN')
