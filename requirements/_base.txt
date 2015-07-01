@@ -85,3 +85,6 @@ phantomas==0.2.2
 
 # PyGithub
 PyGithub==1.25.2
+
+# PyVirtualDisplay
+PyVirtualDisplay==0.1.5

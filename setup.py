@@ -28,5 +28,6 @@ setup(
         'django-jenkins==0.17.0',
         'selenium==2.45.0',
         'PyGithub==1.25.2',
+        'PyVirtualDisplay==0.1.5',
     ],
 )
