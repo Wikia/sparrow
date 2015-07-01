@@ -220,7 +220,8 @@ SPARROW_TEST_RUNNER = {
         }
     ],
     'api_server': get_env_var('SPARROW_API_URI'),
-    'phantomas_path': get_env_var('SPARROW_RUNNER_PHANTOMAS')
+    'phantomas_path': get_env_var('SPARROW_RUNNER_PHANTOMAS'),
+    'use_virtual_display': 'DISPLAY' not in os.environ,
 }
 
 CRHOMEDRIVER_PATH = '/usr/lib/chromium-browser/chromedriver'

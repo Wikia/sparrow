@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from contextlib import closing
+import os
 
 from celery.utils.log import get_task_logger
+from pyvirtualdisplay.display import Display
 
 from selenium.webdriver import DesiredCapabilities
 from selenium import webdriver
-from sparrow.settings import base
 from testrunner import app as celery_app
 from testrunner.test_suites.selenium_tests import selenium_tests
 from testrunner.test_suites.selenium_tests.selenium_timer import SeleniumTimer
 from common import media_wiki_tools
+
+from django.conf import settings
 
 logger = get_task_logger(__name__)
 
@@ -19,7 +22,7 @@ class SeleniumGet(celery_app.Task):
     @staticmethod
     def get_driver():
         caps = DesiredCapabilities.CHROME
-        driver = webdriver.Chrome(executable_path=base.CRHOMEDRIVER_PATH,
+        driver = webdriver.Chrome(executable_path=settings.CRHOMEDRIVER_PATH,
                                   service_args=["--verbose", "--log-path=chromelog.log"],
                                   desired_capabilities=caps)
         driver.implicitly_wait(1)
@@ -57,12 +60,23 @@ class SeleniumGet(celery_app.Task):
         if tests is None:
             tests = self.get_test_list(url)
 
-        for test in tests:
-            result_for_test = []
-            for turn in range(1, retries + 1):
-                test_result = self.run_test(test)
-                result_for_test.append({'run': turn, 'result': test_result})
-            result[test['test_name']] = result_for_test
+        display = None
+        try:
+            if settings.SPARROW_TEST_RUNNER['use_virtual_display']:
+                display = Display()
+                display.start()
+
+            for test in tests:
+                result_for_test = []
+                for turn in range(1, retries + 1):
+                    test_result = self.run_test(test)
+                    result_for_test.append({'run': turn, 'result': test_result})
+                result[test['test_name']] = result_for_test
+
+        finally:
+            if display is not None:
+                display.stop()
+
 
         return {
             'generator': 'selenium',
