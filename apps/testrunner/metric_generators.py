@@ -249,8 +249,8 @@ class SeleniumMetricGenerator(MetricGenerator):
         metrics = Collection()
 
         types = [
-            (noexternals_context, 'oasis_perftest_medium_article_no_externals'),
-            (noads_context, 'oasis_perftest_medium_article_no_ads'),
+            # (noexternals_context, 'oasis_perftest_medium_article_no_externals'),
+            # (noads_context, 'oasis_perftest_medium_article_no_ads'),
             (context, 'load_provided_url'),
         ]
         metric_defs = [
