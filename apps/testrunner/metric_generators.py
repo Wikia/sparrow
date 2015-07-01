@@ -265,12 +265,12 @@ class SeleniumMetricGenerator(MetricGenerator):
                     metrics, out_name, context, data_type,
                     values=self.metric_values_single_step_with_urls(data, test_name, in_name))
         # total time
-        metrics.add(Metric(
-            'browser.transaction.time', anon_search_context, MetricType.TIME,
-            values=self.total_load_time_all_steps(data, 'perftest_oasis_anon_search_pageviews')))
-        metrics.add(Metric(
-            'browser.transaction.time', user_search_context, MetricType.TIME,
-            values=self.total_load_time_all_steps(data, 'perftest_oasis_user_search_pageviews')))
+        # metrics.add(Metric(
+        #     'browser.transaction.time', anon_search_context, MetricType.TIME,
+        #     values=self.total_load_time_all_steps(data, 'perftest_oasis_anon_search_pageviews')))
+        # metrics.add(Metric(
+        #     'browser.transaction.time', user_search_context, MetricType.TIME,
+        #     values=self.total_load_time_all_steps(data, 'perftest_oasis_user_search_pageviews')))
 
         return metrics
 

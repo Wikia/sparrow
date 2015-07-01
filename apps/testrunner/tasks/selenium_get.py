@@ -41,16 +41,16 @@ class SeleniumGet(celery_app.Task):
         return [
             {'test_func': 'enter_page', 'test_name': 'load_provided_url',
              'params': {'url': url}},
-            {'test_func': 'enter_page', 'test_name': 'oasis_muppet_kermit',
-             'params': {'url': url_muppet}},
-            {'test_func': 'enter_page', 'test_name': 'oasis_perftest_medium_article_no_ads',
-             'params': {'url': url_perftest}},
-            {'test_func': 'enter_page', 'test_name': 'oasis_perftest_medium_article_no_externals',
-             'params': {'url': url_perftest_no_externals}},
-            {'test_func': 'perftest_oasis_anon_search_pageviews', 'test_name': 'perftest_oasis_anon_search_pageviews',
-             'params': {'hostname': hostname}},
-            {'test_func': 'perftest_oasis_user_search_pageviews', 'test_name': 'perftest_oasis_user_search_pageviews',
-             'params': {'hostname': hostname}}
+            # {'test_func': 'enter_page', 'test_name': 'oasis_muppet_kermit',
+            #  'params': {'url': url_muppet}},
+            # {'test_func': 'enter_page', 'test_name': 'oasis_perftest_medium_article_no_ads',
+            #  'params': {'url': url_perftest}},
+            # {'test_func': 'enter_page', 'test_name': 'oasis_perftest_medium_article_no_externals',
+            #  'params': {'url': url_perftest_no_externals}},
+            # {'test_func': 'perftest_oasis_anon_search_pageviews', 'test_name': 'perftest_oasis_anon_search_pageviews',
+            #  'params': {'hostname': hostname}},
+            # {'test_func': 'perftest_oasis_user_search_pageviews', 'test_name': 'perftest_oasis_user_search_pageviews',
+            #  'params': {'hostname': hostname}}
         ]
 
     def run(self, url, retries=1, tests=None):
