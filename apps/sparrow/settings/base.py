@@ -221,7 +221,7 @@ SPARROW_TEST_RUNNER = {
     ],
     'api_server': get_env_var('SPARROW_API_URI'),
     'phantomas_path': get_env_var('SPARROW_RUNNER_PHANTOMAS'),
-    'use_virtual_display': 'DISPLAY' not in os.environ,
+    'use_virtual_display': ('DISPLAY' not in os.environ) or (os.environ.get('SPARROW_FORCE_VIRTUAL_DISPLAY','0') != '0'),
 }
 
 CRHOMEDRIVER_PATH = get_env_var('SPARROW_RUNNER_CHROMEDRIVER')

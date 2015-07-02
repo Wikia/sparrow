@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import phantomas
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from common.utils import collect_results
 
 from testrunner import app as celery_app
 
@@ -25,16 +26,10 @@ class PhantomasGet(celery_app.Task):
             exec_path=self.__phantomas_path
         )
 
-        all_runs = []
-        consecutive_fails = 0
-        while len(all_runs) < retries:
-            try:
-                all_runs.append(phantomas_runner.run())
-                consecutive_fails = 0
-            except:
-                consecutive_fails += 1
-                if consecutive_fails >= self.CONSECUTIVE_FAILURES_LIMIT:
-                    raise
+        def run_test():
+            return phantomas_runner.run()
+
+        all_runs = collect_results(run_test,retries)
 
         return {
             'generator': 'phantomas',

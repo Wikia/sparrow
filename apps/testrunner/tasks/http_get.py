@@ -4,6 +4,7 @@ import re
 
 from celery.utils.log import get_task_logger
 import requests
+from common.utils import collect_results
 
 from testrunner import app as celery_app
 
@@ -13,24 +14,18 @@ logger = get_task_logger(__name__)
 
 class HttpGet(celery_app.Task):
     def run(self, url, retries=1, query_params=None):
-        result = []
-
-        for turn in range(1, retries + 1):
-            logger.info('HTTP request #{0} (GET): {1} with params={2}'.format(turn, url, query_params))
+        def run_test():
+            logger.info('HTTP GET request: {} with params={}'.format(url, query_params))
             response = requests.get(url, params=query_params)
-            if response.ok:
-                logger.debug(
-                    'HTTP response #{0} {1}: <full dump skipped> ({2} bytes)'.format(
-                        turn, response.status_code, len(response.content)
-                    )
-                )
-            else:
-                logger.debug('HTTP response #{0} {1}: {2}'.format(turn, response.status_code, response.content))
-
-            result.append({
+            if not response.ok:
+                logger.debug('HTTP status {}: {}'.format(response.status_code, response.content))
+            response.raise_for_status()
+            return {
                 'content': response.text,
-                'headers': dict(response.headers),
-            })
+                'headers': dict(response.headers)
+            }
+
+        results = collect_results(run_test,retries)
 
         return {
             'generator': 'python.requests',
@@ -38,7 +33,7 @@ class HttpGet(celery_app.Task):
                 'url': url,
                 'origin': 'python.requests'
             },
-            'data': result
+            'data': results
         }
 
 

@@ -8,6 +8,7 @@ from pyvirtualdisplay.display import Display
 
 from selenium.webdriver import DesiredCapabilities
 from selenium import webdriver
+from common.utils import collect_results
 from testrunner import app as celery_app
 from testrunner.test_suites.selenium_tests import selenium_tests
 from testrunner.test_suites.selenium_tests.selenium_timer import SeleniumTimer
@@ -56,7 +57,7 @@ class SeleniumGet(celery_app.Task):
     def run(self, url, retries=1, tests=None):
         logger.info('Starting getting data ({0} runs) with selenium for url: {1}'.format(retries, url))
 
-        result = {}
+        results = {}
         if tests is None:
             tests = self.get_test_list(url)
 
@@ -66,12 +67,18 @@ class SeleniumGet(celery_app.Task):
                 display = Display()
                 display.start()
 
+            def run_test():
+                return self.run_test(test)
+
             for test in tests:
-                result_for_test = []
-                for turn in range(1, retries + 1):
-                    test_result = self.run_test(test)
-                    result_for_test.append({'run': turn, 'result': test_result})
-                result[test['test_name']] = result_for_test
+                test_results = zip(range(retries),collect_results(run_test,retries))
+                results[test['test_name']] = [
+                    {
+                        'run': i + 1,
+                        'result': test_result
+                    }
+                    for i, test_result in test_results
+                ]
 
         finally:
             if display is not None:
@@ -83,7 +90,7 @@ class SeleniumGet(celery_app.Task):
             'context': {
                 'origin': 'selenium'
             },
-            'data': result
+            'data': results
         }
 
     def run_test(self, test):
