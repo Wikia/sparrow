@@ -1,5 +1,6 @@
 from collections import OrderedDict
 import csv
+import urlparse
 from django.conf import settings
 from django.core.management.base import BaseCommand
 import ujson
@@ -10,13 +11,13 @@ from testrunner.metric_sets import BasicMetricSet
 
 
 class Command(BaseCommand):
-    help = 'Fetch data from sparrow server and generate stability report'
+    help = 'Fetch data for all test runs and dump it to CSV files'
 
     def merge_collections(self, *input):
         def metric_context_id(m):
             return '{}'.format(sorted(m.context.items(), key=lambda kv: kv[0]))
 
-        mm = [
+        metrics_by_id_list = [
             dict([
                 (metric_context_id(metric), metric)
                 for metric in collection
@@ -24,18 +25,19 @@ class Command(BaseCommand):
             for collection in input
         ]
         keys = set()
-        for mmm in mm:
-            keys.update(set(mmm.keys()))
-        out = Collection()
+        for metrics_by_id in metrics_by_id_list:
+            keys.update(set(metrics_by_id.keys()))
+        result = Collection()
         for key in keys:
-            metrics = filter(lambda x: x is not None, [mmm.get(key) for mmm in mm])
+            metrics = filter(lambda metric_or_none: metric_or_none is not None,
+                             [metrics_by_id.get(key) for metrics_by_id in metrics_by_id_list])
             for i in range(1, len(metrics)):
                 metrics[0].add_values([
                     (value.raw_value, value.info)
                     for value in metrics[i].values
                 ])
-            out.add(metrics[0])
-        return out
+            result.add(metrics[0])
+        return result
 
 
     def fetch_json(self, url):
@@ -47,6 +49,10 @@ class Command(BaseCommand):
         test_runs = self.fetch_json('http://sparrow-s1/api/v1/test_runs/')
 
         q1 = Query().where_eq('id', 'browser.dom.event.interactive')
+
+        def is_skipped_metric(metric):
+            id = metric.context['id']
+            return id.endswith('.list') or id.endswith('.jQueryVersion') or id.endswith('.statusCodesTrail')
 
         for test_run in test_runs['results']:
             result_urls = test_run['results']
@@ -69,7 +75,7 @@ class Command(BaseCommand):
             sorted_metrics = sorted([
                                         ('{}/{}'.format(metric.context['origin'], metric.context['id']), metric)
                                         for metric in collection.metrics
-                                        if not metric.context['id'].endswith('.list')
+                                        if not is_skipped_metric(metric)
                                     ], key=lambda kv: kv[0])
             for id, metric in sorted_metrics:
                 # id = '{}/{}'.format(metric.context['origin'], metric.context['id'])
@@ -101,8 +107,9 @@ class Command(BaseCommand):
             context = rr[0].context
             url = context['url']
             url = url[url.find('/wiki/') + 6:]
-            article, sep, unused = url.partition('?')
-            file_name = article + ('-debug' if unused != '' else '') + '.csv'
+            article, sep, query = url.partition('?')
+            qs = urlparse.parse_qs(query)
+            file_name = article + ''.join(['-' + k for k in qs.keys()]) + '.csv'
             print file_name
             with open(file_name, 'wb') as f:
                 w = csv.writer(f)
