@@ -95,17 +95,21 @@ class SeleniumGet(celery_app.Task):
 
     def run_test(self, test):
         logger.info('Running selenium test: ' + test['test_name'])
+        driver = None
         try:
-            with closing(self.get_driver()) as driver:
+            driver = self.get_driver()
 
-                timer = SeleniumTimer(driver)
-                timer.start()
+            timer = SeleniumTimer(driver)
+            timer.start()
 
-                test_func = getattr(selenium_tests, test['test_func'])
-                test_func(driver, timer, test['params'])
+            test_func = getattr(selenium_tests, test['test_func'])
+            test_func(driver, timer, test['params'])
 
-                return timer.get_result()
+            return timer.get_result()
         except:
             logger.error('Exception caught while running selenium test: ' + test['test_name'], exc_info=True)
+        finally:
+            if driver is not None:
+                driver.quit()
 
 
