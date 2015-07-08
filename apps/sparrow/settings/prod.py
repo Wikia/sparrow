@@ -7,3 +7,6 @@ LOGGING['loggers'][''] = {
 }
 import logging.config
 logging.config.dictConfig(LOGGING)
+
+ALLOWED_HOSTS = ['*']
+
