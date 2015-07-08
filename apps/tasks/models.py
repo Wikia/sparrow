@@ -57,12 +57,16 @@ class Task(models.Model):
         self.__original_status = self.status
 
     def save(self, *args, **kwargs):
+        is_new = self.id is None
 
         super(Task, self).save(*args, **kwargs)
 
         if self.__original_status != self.status:
             task_status_changed.send(self.__class__, instance=self)
             self.__original_status = self.status
+
+        if is_new:
+            self.run()
 
     def run(self):
         result_uri=build_absolute_uri(reverse('testresult-list')),
