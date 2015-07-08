@@ -2,7 +2,7 @@ from .base import *
 
 LOGGING['loggers'][''] = {
     'handlers': ['log_to_stdout'],
-    'level': 'DEBUG',
+    'level': 'WARNING',
     'propagate': True,
 }
 import logging.config
