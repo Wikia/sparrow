@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from django.test.utils import override_settings
 import mock
 
 from rest_framework.test import APITestCase
@@ -7,6 +8,7 @@ from testrunner.tasks.selenium_get import SeleniumGet
 from tests.mocks.chrome import ChromeMock
 
 
+@override_settings(SELENIUM_USE_VIRTUAL_DISPLAY=False)
 class TestResultTestCase(APITestCase):
 
     @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
