@@ -8,9 +8,7 @@ from testrunner.metric_sets import BasicMetricSet
 
 
 def build_absolute_uri(uri):
-    api_url = settings.SPARROW_TEST_RUNNER['api_server']
-    api_url = api_url[:api_url.index('/api/v1/')]
-    return api_url + uri
+    return settings.API_SERVER_URL + uri
 
 
 class Command(BaseCommand):

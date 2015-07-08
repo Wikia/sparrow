@@ -31,7 +31,7 @@ class TaskRepo(object):
 
     def __init__(self):
         # Auto Discover API URIs
-        self.API_SERVER = settings.SPARROW_TEST_RUNNER['api_server']
+        self.API_SERVER = settings.API_SERVER_URL + '/api/v1/'
         api_descr = {}
 
         try:

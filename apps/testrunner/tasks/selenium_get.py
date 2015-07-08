@@ -72,7 +72,7 @@ class SeleniumGet(celery_app.Task):
 
         display = None
         try:
-            if settings.SPARROW_TEST_RUNNER['use_virtual_display']:
+            if settings.SELENIUM_USE_VIRTUAL_DISPLAY:
                 display = Display()
                 display.start()
 
