@@ -35,7 +35,7 @@ class SSHConnection(object):
     SSHConnection class, helper for using SSH client connections
     """
 
-    def __init__(self, hostname, username='', password='',
+    def __init__(self, hostname, username=None, password=None,
                  port=22, debug=False, debug_file='/tmp/paramiko.log',
                  timeout=18000):
         self.hostname = hostname
@@ -63,13 +63,14 @@ class SSHConnection(object):
         if self.connection:
             return
 
+        logger.debug('Connecting to {} using SSH...'.format(self.hostname))
         hostname = self.hostname
         if self.debug:
             paramiko.util.log_to_file(self.debug_file)
         connection = paramiko.SSHClient()
         connection.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         connection.load_system_host_keys()
-        connection.connect(hostname)
+        connection.connect(hostname, username=self.username, password=self.password)
         self.connection = connection
 
     def close(self):
@@ -131,35 +132,21 @@ class SSHConnection(object):
         Execute a commend on remote host
         """
         logger.info('Running remote command: {} ...'.format(cmd))
-        channel = self.connection.get_transport().open_session()
-        channel.get_pty()
-        channel.settimeout(self.timeout)
-
-        stdout = BytesIO()
-        stderr = BytesIO()
-        status = False
 
         try:
-            self.log(cmd)
-            channel.exec_command(cmd)
-            while not channel.exit_status_ready():
-                if channel.recv_ready():
-                    buff = channel.recv(1024)
-                    while buff:
-                        stdout.write(buff)
-                        buff = channel.recv(1024)
-
-                if channel.recv_stderr_ready():
-                    buff = channel.recv_stderr(1024)
-                    while buff:
-                        stderr.write(buff)
-                        buff = channel.recv_stderr(1024)
+            stdin, stdout, stderr = self.connection.exec_command(cmd, timeout=self.timeout, get_pty=True)
+            channel = stdout.channel
+            channel.shutdown_write()
 
             status = channel.recv_exit_status()
+
+            stdout = stdout.read()
+            stderr = stderr.read()
         except socket.timeout:
             raise SSHException("Socket timeout")
 
         logger.info('Exit code = {}'.format(status))
-        logger.debug('Stdout:\n{}'.format(stdout.getvalue()))
-        logger.debug('Stderr:\n{}'.format(stderr.getvalue()))
+        logger.debug('Stdout:\n{}'.format(stdout))
+        logger.debug('Stderr:\n{}'.format(stderr))
+
         return status, stdout, stderr
