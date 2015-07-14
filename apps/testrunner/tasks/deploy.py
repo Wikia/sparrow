@@ -25,9 +25,9 @@ class Deploy(celery_app.Task):
     @classmethod
     def run_prep(cls, connection, app, env, repos):
         repo_spec = ' '.join([
-                                 '-r {repo_name}@{repo_commit}'.format(repo_name=repo_name, repo_commit=repo_commit)
-                                 for repo_name, repo_commit in repos.items()
-                                 ])
+            '-r {repo_name}@{repo_commit}'.format(repo_name=repo_name, repo_commit=repo_commit)
+            for repo_name, repo_commit in repos.items()
+        ])
 
         cmd = 'dt --boring -y prep -a {app} -e {env} {repo_spec}'.format(
             app=app,
@@ -48,7 +48,7 @@ class Deploy(celery_app.Task):
 
     @classmethod
     def clean_up_old_releases(cls, hostname, connection):
-        current_release = int(cls.get_remote_output(connectoin, 'readlink {}current'.format(cls.DEPLOY_DIR)))
+        current_release = int(cls.get_remote_output(connection, 'readlink {}current'.format(cls.DEPLOY_DIR)))
         current_release_str = str(current_release)
         logger.debug('{}: current_release = {}'.format(hostname, current_release))
 
