@@ -14,7 +14,7 @@ from rest_framework.test import APITestCase
 from metrics.values import Stats
 
 from tasks.models import TaskStatus
-from tests.mocks.ssh import SSHConnectionMock
+from tests.mocks.ssh import SSHConnectionMock, SSHConnectionMockBuilder
 from tests.mocks.requests import post_response
 from tests.mocks.phantomas import PhantomasMock
 from tests.mocks.chrome import ChromeMock
@@ -66,7 +66,7 @@ class TestResultTestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK, msg='Read failed: {0}'.format(response.data))
 
-    @mock.patch('testrunner.tasks.deploy.SSHConnection', SSHConnectionMock)
+    @mock.patch('testrunner.tasks.deploy.SSHConnection', SSHConnectionMockBuilder('1'))
     @mock.patch('testrunner.tasks.phantomas_get.phantomas.Phantomas', PhantomasMock)
     @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
     @mock.patch('selenium.webdriver.support.wait.WebDriverWait', mock.MagicMock())
