@@ -132,39 +132,20 @@ class SSHConnection(object):
         """
         Execute a commend on remote host
         """
-        logger.info('Running remote command: {} ...'.format(cmd))
-        channel = self.connection.get_transport().open_session()
-        channel.get_pty()
-        channel.settimeout(self.timeout)
-
-        stdout = []
-        stderr = []
-        status = False
-
         try:
+            logger.info('Running remote command: {} ...'.format(cmd))
             self.log(cmd)
-            channel.exec_command(cmd)
-            while not channel.exit_status_ready():
-                if channel.recv_ready():
-                    buff = channel.recv(1024)
-                    while buff:
-                        stdout.append(buff)
-                        buff = channel.recv(1024)
-
-                if channel.recv_stderr_ready():
-                    buff = channel.recv_stderr(1024)
-                    while buff:
-                        stderr.append(buff)
-                        buff = channel.recv_stderr(1024)
-
-                time.sleep(paramiko.io_sleep)
-
+            in_file, out_file, err_file = self.connection.exec_command(cmd, timeout=self.timeout, get_pty=True)
+            channel = in_file.channel
+            channel.shutdown_write()
             status = channel.recv_exit_status()
+
+            stdout = out_file.read()
+            stderr = err_file.read()
+
         except socket.timeout:
             raise SSHException("Socket timeout")
 
-        stdout = ''.join(stdout)
-        stderr = ''.join(stderr)
 
         logger.info('Exit code = {}'.format(status))
         logger.debug('Stdout:\n{}'.format(stdout))
