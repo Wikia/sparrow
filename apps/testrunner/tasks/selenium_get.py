@@ -19,6 +19,15 @@ from django.conf import settings
 logger = get_task_logger(__name__)
 
 
+class quitting(object):
+    def __init__(self, thing):
+        self.thing = thing
+    def __enter__(self):
+        return self.thing
+    def __exit__(self, *exc_info):
+        self.thing.quit()
+
+
 class SeleniumGet(celery_app.Task):
     @staticmethod
     def get_driver():
@@ -96,8 +105,7 @@ class SeleniumGet(celery_app.Task):
     def run_test(self, test):
         logger.info('Running selenium test: ' + test['test_name'])
         try:
-            with closing(self.get_driver()) as driver:
-
+            with quitting(self.get_driver()) as driver:
                 timer = SeleniumTimer(driver)
                 timer.start()
 
@@ -107,5 +115,3 @@ class SeleniumGet(celery_app.Task):
                 return timer.get_result()
         except:
             logger.error('Exception caught while running selenium test: ' + test['test_name'], exc_info=True)
-
-

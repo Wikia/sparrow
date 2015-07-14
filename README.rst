@@ -5,6 +5,10 @@ Sparrow
      :target: https://requires.io/github/Wikia/sparrow/requirements/?branch=master
      :alt: Requirements Status
 
+.. image:: https://travis-ci.org/Wikia/sparrow.svg
+     :target: https://travis-ci.org/Wikia/sparrow
+     :alt: Travis Build Status
+
 Performance monitoring platform which allows running automated performance tests
 on a given codebase.
 
