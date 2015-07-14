@@ -2,6 +2,7 @@ import functools
 import os
 import socket
 import tempfile
+import time
 from six import BytesIO
 
 import paramiko
@@ -63,10 +64,10 @@ class SSHConnection(object):
         if self.connection:
             return
 
-        logger.debug('Connecting to {} using SSH...'.format(self.hostname))
         hostname = self.hostname
         if self.debug:
             paramiko.util.log_to_file(self.debug_file)
+
         connection = paramiko.SSHClient()
         connection.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         connection.load_system_host_keys()
@@ -132,21 +133,40 @@ class SSHConnection(object):
         Execute a commend on remote host
         """
         logger.info('Running remote command: {} ...'.format(cmd))
+        channel = self.connection.get_transport().open_session()
+        channel.get_pty()
+        channel.settimeout(self.timeout)
+
+        stdout = []
+        stderr = []
+        status = False
 
         try:
-            stdin, stdout, stderr = self.connection.exec_command(cmd, timeout=self.timeout, get_pty=True)
-            channel = stdout.channel
-            channel.shutdown_write()
+            self.log(cmd)
+            channel.exec_command(cmd)
+            while not channel.exit_status_ready():
+                if channel.recv_ready():
+                    buff = channel.recv(1024)
+                    while buff:
+                        stdout.append(buff)
+                        buff = channel.recv(1024)
+
+                if channel.recv_stderr_ready():
+                    buff = channel.recv_stderr(1024)
+                    while buff:
+                        stderr.append(buff)
+                        buff = channel.recv_stderr(1024)
+
+                time.sleep(paramiko.io_sleep)
 
             status = channel.recv_exit_status()
-
-            stdout = stdout.read()
-            stderr = stderr.read()
         except socket.timeout:
             raise SSHException("Socket timeout")
+
+        stdout = ''.join(stdout)
+        stderr = ''.join(stderr)
 
         logger.info('Exit code = {}'.format(status))
         logger.debug('Stdout:\n{}'.format(stdout))
         logger.debug('Stderr:\n{}'.format(stderr))
-
         return status, stdout, stderr
