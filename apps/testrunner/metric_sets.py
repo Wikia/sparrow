@@ -8,7 +8,6 @@ class BasicMetricSet(object):
 
         url = self.find_url()
 
-
         # from phantomas
         self.first_paint_phantomas = self.get_stats({
             'id': 'browser.dom.event.first_paint',
@@ -72,7 +71,6 @@ class BasicMetricSet(object):
             if isinstance(v, Stats):
                 self.items[k] = v
 
-
     def get_stats(self, where, group_by=None):
         q = Query()
         for k, v in where.items():
@@ -82,7 +80,7 @@ class BasicMetricSet(object):
         result_set = q.execute(self.collection)
         results = list(result_set)
         if len(results) != 1:
-            print results
+            print(results)
             raise ValueError('Sanity check failed, number of results is not 1')
 
         """ :type result: Result """
