@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 
 
 def get_hostname_from_url(url):

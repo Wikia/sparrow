@@ -50,7 +50,7 @@ class MWProfilerGet(HttpGet):
             'generator': 'mw_profiler',
             'context': get_result['context'],
             'data': [
-                dict(single_result.items() + [('profiler_data', self.extract_profiler_data(single_result['content']))])
+                dict(single_result, **{'profiler_data': self.extract_profiler_data(single_result['content'])})
                 for single_result in get_result['data']
             ]
         }

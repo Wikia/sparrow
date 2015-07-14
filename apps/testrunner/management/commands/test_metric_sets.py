@@ -38,7 +38,7 @@ class Command(BaseCommand):
         basic_metrics = basic_metric_set.items
 
         for k, v  in basic_metrics.items():
-            print 'METRIC: {}'.format(k)
+            print('METRIC: {}'.format(k))
             dump_stats(v)
 
 
@@ -48,14 +48,14 @@ def dump_result_set(result_set, indent=''):
     :type result_set: metrics.queries.ResultSet
     :return:
     """
-    print indent + 'RESULT SET'
+    print(indent + 'RESULT SET')
     dump_query(result_set.query)
 
     results = list(result_set.results)
     if len(results) > 0:
         r_indent = indent + '    '
         for result in results:
-            print indent + '  RESULT'
+            print(indent + '  RESULT')
             dump_context(result.context, r_indent)
             dump_values(result, r_indent)
 
@@ -66,15 +66,15 @@ def dump_query(query, indent=''):
     :type query: metrics.queries.Query
     :return:
     """
-    print indent + 'QUERY'
+    print(indent + 'QUERY')
     if len(query.where_clause) > 0:
-        print indent + '  WHERE'
+        print(indent + '  WHERE')
         for condition in query.where_clause:
-            print indent + '    ' + condition['text']
+            print(indent + '    ' + condition['text'])
     if len(query.group_by_clause) > 0:
-        print indent + '  UNIFY BY'
+        print(indent + '  UNIFY BY')
         for field in query.group_by_clause:
-            print indent + '    ' + field
+            print(indent + '    ' + field)
 
 
 def dump_context(context, indent=''):
@@ -87,32 +87,32 @@ def dump_context(context, indent=''):
         l.append(('type', c['type']))
         c.pop('type')
     l += OrderedDict(c).items()
-    print indent + 'CONTEXT'
+    print(indent + 'CONTEXT')
     for k, v in l:
-        print indent + '  {} = {}'.format(k, v)
+        print(indent + '  {} = {}'.format(k, v))
 
 
 def dump_values(result, indent=''):
-    print indent + 'VALUES'
+    print(indent + 'VALUES')
     raw_values = sorted(result.raw_values)
-    print indent + '  {}'.format(raw_values)
+    print(indent + '  {}'.format(raw_values))
     stats = result.stats
-    print indent + '  count = {}        median = {}         stddev = {}'.format(stats.count, stats.median, stats.stddev)
-    print indent + '       5%                                 50%                              90%   95%    '
-    print indent + '  -----|----------------------------------|--------------------------------|-----|------'
-    print indent + '       {:<10}                         {:<10}                             {:<10}'.format(
-        stats.pct_5, stats.pct_50, stats.pct_95)
-    print indent + '                                                                           {:<10}'.format(
-        stats.pct_90)
+    print(indent + '  count = {}        median = {}         stddev = {}'.format(stats.count, stats.median, stats.stddev))
+    print(indent + '       5%                                 50%                              90%   95%    ')
+    print(indent + '  -----|----------------------------------|--------------------------------|-----|------')
+    print(indent + '       {:<10}                         {:<10}                             {:<10}'.format(
+        stats.pct_5, stats.pct_50, stats.pct_95))
+    print(indent + '                                                                           {:<10}'.format(
+        stats.pct_90))
 
 def dump_stats(stats, indent=''):
-    print indent + 'VALUES'
+    print(indent + 'VALUES')
     raw_values = sorted(stats.values)
-    print indent + '  {}'.format(raw_values)
-    print indent + '  count = {}        median = {}         stddev = {}'.format(stats.count, stats.median, stats.stddev)
-    print indent + '       5%                                 50%                              90%   95%    '
-    print indent + '  -----|----------------------------------|--------------------------------|-----|------'
-    print indent + '       {:<10}                         {:<10}                             {:<10}'.format(
-        stats.pct_5, stats.pct_50, stats.pct_95)
-    print indent + '                                                                           {:<10}'.format(
-        stats.pct_90)
+    print(indent + '  {}'.format(raw_values))
+    print(indent + '  count = {}        median = {}         stddev = {}'.format(stats.count, stats.median, stats.stddev))
+    print(indent + '       5%                                 50%                              90%   95%    ')
+    print(indent + '  -----|----------------------------------|--------------------------------|-----|------')
+    print(indent + '       {:<10}                         {:<10}                             {:<10}'.format(
+        stats.pct_5, stats.pct_50, stats.pct_95))
+    print(indent + '                                                                           {:<10}'.format(
+        stats.pct_90))
