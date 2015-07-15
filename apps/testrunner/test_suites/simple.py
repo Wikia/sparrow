@@ -12,6 +12,7 @@ from testrunner.tasks.http_get import MWProfilerGet
 from testrunner.tasks.phantomas_get import PhantomasGet
 from testrunner.tasks.process_results import ProcessResponses
 from testrunner.tasks.selenium_get import SeleniumGet
+from testrunner import app as celery_app
 
 logger = get_task_logger(__name__)
 
@@ -25,13 +26,26 @@ class SimpleTestSuite(object):
         self.TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
 
     def run(self, **kwargs):
-        retries = kwargs.pop('retries')
-        if retries is None:
-            retries = self.DEFAULT_RETRIES_COUNT
+        if not 'retries' in kwargs:
+            kwargs['retries'] = self.DEFAULT_RETRIES_COUNT
 
-        logger.info('Started execution of task #{} (x{})'.format(kwargs['task_uri'], retries))
+        logger.info('Started execution of task #{} (x{})'.format(kwargs['task_uri'], kwargs['retries']))
         logger.debug('params = ' + ujson.dumps(kwargs))
 
+        mode = 'SINGLE'
+        if mode == 'MULTIPLE':
+            task = self.get_multiple_tasks(**kwargs)
+        elif mode == 'SINGLE':
+            task = self.get_single_task(**kwargs)
+
+        logger.info('Scheduled execution of task #{0}: {1}'.format(kwargs['task_uri'], task.id))
+
+        result = task.delay()
+
+        return result
+
+
+    def get_multiple_tasks(self, **kwargs):
         tasks = (
             Deploy().s(
                 deploy_host=self.DEPLOY_HOST,
@@ -55,8 +69,49 @@ class SimpleTestSuite(object):
             )
         )
 
-        result = tasks.delay()
+        return tasks
 
-        logger.info('Scheduled execution of task #{0}: {1}'.format(kwargs['task_uri'], result.id))
+    def get_single_task(self, **kwargs):
+        task = SimpleTestSuiteTask().s(**kwargs)
 
-        return result
+        return task
+
+
+class SimpleTestSuiteTask(celery_app.Task):
+    def run(self, *args, **kwargs):
+        test_runner_config = settings.SPARROW_TEST_RUNNER
+        DEPLOY_HOST = test_runner_config['deploy_host']['hostname']
+        TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
+
+        deploy_result = Deploy().run(
+            deploy_host=DEPLOY_HOST,
+            app='wikia',
+            env=TARGET_ENV,
+            repos={
+                'app': kwargs['app_commit'],
+                'config': kwargs['config_commit']
+            }
+        )
+
+        url = kwargs['url']
+        retries = kwargs['retries']
+        http_get_result = HttpGet().run(url=url, retries=retries)
+        mw_profiler_result = MWProfilerGet().run(url=url, retries=retries)
+        selenium_result = SeleniumGet().run(url=url, retries=retries)
+        phantomas_result = PhantomasGet().run(url=url, retries=retries)
+
+        ProcessResponses().run(
+            data=[
+                http_get_result,
+                mw_profiler_result,
+                selenium_result,
+                phantomas_result
+            ],
+            result_uri=kwargs['result_uri'],
+            task_uri=kwargs['task_uri'],
+            test_run_uri=kwargs['test_run_uri']
+        )
+
+    def on_success(self, retval, task_id, args, kwargs):
+        result = self.AsyncResult(task_id)
+        result.forget()
