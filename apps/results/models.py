@@ -5,7 +5,23 @@ from django.db import models
 import jsonfield
 
 
+class TestResultManager(models.Manager):
+    """ Custom model manager for TestResult model.
+
+        To optimize SQL queries when fetching TestResults we set
+        most database-heavy fields to be fetched separatelly when
+        they are acctually needed. This speed ups the responses
+        dramatically.
+    """
+
+    def get_queryset(self):
+        return super(TestResultManager, self).get_queryset().defer('results')
+
+
 class TestResult(models.Model):
+    # Custom object manager to allow using deferred fields
+    objects = TestResultManager()
+
     id = models.AutoField(primary_key=True)
     test_run = models.ForeignKey('test_runs.TestRun', related_name='results')
     task = models.ForeignKey('tasks.Task', related_name='results')
@@ -18,6 +34,7 @@ class TestResult(models.Model):
     __unicode__ = __repr__
 
     __str__ = __repr__
+
 
 class TestRawResult(models.Model):
     id = models.AutoField(primary_key=True)
