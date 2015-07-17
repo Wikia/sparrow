@@ -1,6 +1,9 @@
 # Base requirements file.
 # Place items here that should be installed in ALL environments.
 
+# include the base requirements file
+-r _cli.txt
+
 # To keep the compatibilty with Python 2.x and 3.x
 six==1.9.0
 
