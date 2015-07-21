@@ -1,3 +1,4 @@
+from collections import defaultdict
 from metrics.values import ValueSet, Value
 
 
@@ -42,6 +43,16 @@ class Collection(object):
             for metric in self.metrics
         ]
 
+    def merge(self):
+        metrics_by_context_id = defaultdict(list)
+        for metric in self.metrics:
+            metrics_by_context_id[metric.context_str].append(metric)
+        for key, metrics in metrics_by_context_id.items():
+            for i in range(1, len(metrics)):
+                metrics[0].add_values([(value.raw_value, value.info) for value in metrics[i].values])
+            metrics_by_context_id[key] = metric[0]
+        return Collection(metrics.values())
+
     @staticmethod
     def unserialize(data):
         return Collection([
@@ -66,6 +77,11 @@ class Metric(object):
     @property
     def id(self):
         return self.context['id']
+
+    @property
+    def context_str(self):
+        return '{}'.format(sorted(self.context.items(), key=lambda kv: kv[0]))
+
 
     @property
     def type(self):
