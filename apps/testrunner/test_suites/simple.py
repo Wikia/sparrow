@@ -26,7 +26,7 @@ class SimpleTestSuite(object):
         self.TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
 
     def run(self, **kwargs):
-        if not 'retries' in kwargs:
+        if kwargs.get('retries') is None:
             kwargs['retries'] = self.DEFAULT_RETRIES_COUNT
 
         logger.info('Started execution of task #{} (x{})'.format(kwargs['task_uri'], kwargs['retries']))
