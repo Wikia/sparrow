@@ -20,6 +20,9 @@ from tests.mocks.phantomas import PhantomasMock
 from tests.mocks.chrome import ChromeMock
 
 
+def noop(*args, **kwargs):
+    pass
+
 @override_settings(CELERY_ALWAYS_EAGER=True)
 class TestResultTestCase(APITestCase):
     def setUp(self):
@@ -70,6 +73,7 @@ class TestResultTestCase(APITestCase):
     @mock.patch('testrunner.tasks.phantomas_get.phantomas.Phantomas', PhantomasMock)
     @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
     @mock.patch('selenium.webdriver.support.wait.WebDriverWait', mock.MagicMock())
+    @mock.patch('testrunner.test_suites.simple.SimpleTestSuiteTask.on_success', noop)
     @responses.activate
     @post_response
     def test_run_task(self, post_callback):
