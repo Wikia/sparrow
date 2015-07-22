@@ -208,7 +208,7 @@ class RequestsMetricGenerator(MetricGenerator):
 
         metrics = Collection()
         metrics.add(Metric('server.app.response_time', context, MetricType.TIME, values=[
-            (float(single_run['headers']['x-backend-response-time']), None)
+            (float(single_run['time']), None)
             for single_run in data
         ]))
 

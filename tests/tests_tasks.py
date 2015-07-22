@@ -20,8 +20,16 @@ from tests.mocks.phantomas import PhantomasMock
 from tests.mocks.chrome import ChromeMock
 
 
+CURRENT_TIME_MOCK = 1401041000
+
+def time_time_mock(*args, **kwargs):
+    global CURRENT_TIME_MOCK
+    CURRENT_TIME_MOCK += 2
+    return CURRENT_TIME_MOCK
+
 def noop(*args, **kwargs):
     pass
+
 
 @override_settings(CELERY_ALWAYS_EAGER=True)
 class TestResultTestCase(APITestCase):
@@ -74,6 +82,7 @@ class TestResultTestCase(APITestCase):
     @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
     @mock.patch('selenium.webdriver.support.wait.WebDriverWait', mock.MagicMock())
     @mock.patch('testrunner.test_suites.simple.SimpleTestSuiteTask.on_success', noop)
+    @mock.patch('testrunner.tasks.http_get.HttpGet.get_current_time',time_time_mock)
     @responses.activate
     @post_response
     def test_run_task(self, post_callback):
@@ -107,8 +116,8 @@ class TestResultTestCase(APITestCase):
 
         response_times = get_stats_from_requests('requests', 'server.app.response_time')
         self.assertEqual(response_times.count, 10)
-        self.assertEqual(response_times.min, 123.0)
-        self.assertEqual(response_times.max, 123.0)
+        self.assertEqual(response_times.min, 2.0)
+        self.assertEqual(response_times.max, 2.0)
 
         memcached_dupes = get_stats_from_requests('mw_profiler', 'server.app.memcached.dupe_count')
         memcached_misses = get_stats_from_requests('mw_profiler', 'server.app.memcached.miss_count')
