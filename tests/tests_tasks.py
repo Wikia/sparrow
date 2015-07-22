@@ -27,6 +27,10 @@ def time_time_mock(*args, **kwargs):
     CURRENT_TIME_MOCK += 2
     return CURRENT_TIME_MOCK
 
+def noop(*args, **kwargs):
+    pass
+
+
 @override_settings(CELERY_ALWAYS_EAGER=True)
 class TestResultTestCase(APITestCase):
     def setUp(self):
@@ -77,6 +81,7 @@ class TestResultTestCase(APITestCase):
     @mock.patch('testrunner.tasks.phantomas_get.phantomas.Phantomas', PhantomasMock)
     @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
     @mock.patch('selenium.webdriver.support.wait.WebDriverWait', mock.MagicMock())
+    @mock.patch('testrunner.test_suites.simple.SimpleTestSuiteTask.on_success', noop)
     @mock.patch('testrunner.tasks.http_get.HttpGet.get_current_time',time_time_mock)
     @responses.activate
     @post_response
