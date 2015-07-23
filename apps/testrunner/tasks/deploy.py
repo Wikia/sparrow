@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 from contextlib import closing
 
+from django.conf import settings
 from celery.utils.log import get_task_logger
 
 from testrunner import app as celery_app
@@ -19,8 +20,11 @@ class Deploy(celery_app.Task):
         with closing(SSHConnection(deploy_host)) as connection:
             self.run_prep(connection, app, env, repos)
             self.run_push(connection, app, env)
-        with closing(SSHConnection(env)) as connection:
-            self.clean_up_old_releases(env, connection)
+
+        # on dev environment don't try to clean up the releases
+        if not settings.DEBUG:
+            with closing(SSHConnection(env)) as connection:
+                self.clean_up_old_releases(env, connection)
 
     @classmethod
     def run_prep(cls, connection, app, env, repos):
