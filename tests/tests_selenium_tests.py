@@ -13,6 +13,7 @@ class TestResultTestCase(APITestCase):
 
     @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
     @mock.patch('selenium.webdriver.support.wait.WebDriverWait', mock.MagicMock())
+    @mock.patch('testrunner.tasks.selenium_get.Display', mock.MagicMock())
     def test_selenium_tests(self):
         url = 'http://muppet.wikia.com'
         hostname = 'wikia.com'
