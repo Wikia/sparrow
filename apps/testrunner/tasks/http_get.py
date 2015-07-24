@@ -18,7 +18,7 @@ class HttpGet(celery_app.Task):
     def get_current_time(self):
         return time.time()
 
-    def __parse_content(self, response_content):
+    def _parse_content(self, response_content):
         return ''
 
     def run(self, result_uri, url, retries=1, query_params=None, **params):
@@ -31,7 +31,7 @@ class HttpGet(celery_app.Task):
                 logger.debug('HTTP status {}: {}'.format(response.status_code, response.content))
             response.raise_for_status()
             return {
-                'content': self.__parse_content(response.text),
+                'content': self._parse_content(response.text),
                 'headers': dict(response.headers),
                 'time': elapsed_time
             }
@@ -62,7 +62,7 @@ class MWProfilerGet(HttpGet):
 
         return HttpGet.run(self, result_uri, url, retries, query_params, **params)
 
-    def __parse_content(self, response_content):
+    def _parse_content(self, response_content):
         try:
             start_pos = response_content.rindex('<!--')
             end_pos = response_content.rindex('-->')
