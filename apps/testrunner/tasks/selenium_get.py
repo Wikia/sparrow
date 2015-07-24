@@ -13,6 +13,7 @@ from testrunner import app as celery_app
 from testrunner.test_suites.selenium_tests import selenium_tests
 from testrunner.test_suites.selenium_tests.selenium_timer import SeleniumTimer
 from common import media_wiki_tools
+from testrunner.api_client import ApiClient
 
 from django.conf import settings
 
@@ -63,7 +64,7 @@ class SeleniumGet(celery_app.Task):
             #  'params': {'hostname': hostname}}
         ]
 
-    def run(self, url, retries=1, tests=None):
+    def run(self, result_uri, url, retries=1, tests=None, **params):
         logger.info('Starting getting data ({0} runs) with selenium for url: {1}'.format(retries, url))
 
         results = {}
@@ -80,7 +81,7 @@ class SeleniumGet(celery_app.Task):
                 return self.run_test(test)
 
             for test in tests:
-                test_results = zip(range(retries),collect_results(run_test,retries))
+                test_results = zip(range(retries), collect_results(run_test, retries))
                 results[test['test_name']] = [
                     {
                         'run': i + 1,
@@ -93,14 +94,17 @@ class SeleniumGet(celery_app.Task):
             if display is not None:
                 display.stop()
 
+        logger.info('Sending results from Selenium for url: {0}'.format(url))
 
-        return {
+        # posting raw results
+        ApiClient.post(params['raw_result_uri'], {
+            'result': result_uri,
             'generator': 'selenium',
-            'context': {
-                'origin': 'selenium'
-            },
-            'data': results
-        }
+            'context': {'url': url, 'origin': 'selenium', },
+            'data': results,
+        })
+
+        return result_uri
 
     def run_test(self, test):
         logger.info('Running selenium test: ' + test['test_name'])

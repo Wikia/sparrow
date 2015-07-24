@@ -30,7 +30,8 @@ class TaskViewSet(viewsets.ModelViewSet):
         task = self.get_object()
 
         task.run(
-            result_uri=request.build_absolute_uri(reverse('testresult-list')),
+            results_uri=request.build_absolute_uri(reverse('testresult-list')),
+            raw_result_uri=request.build_absolute_uri(reverse('testrawresult-list')),
             task_uri=request.build_absolute_uri(reverse('task-detail', args=[pk, ])),
             test_run_uri=request.build_absolute_uri(reverse('testrun-detail', args=[task.test_run_id, ])),
         )

@@ -7,6 +7,7 @@ from django.conf import settings
 from common.utils import collect_results
 
 from testrunner import app as celery_app
+from testrunner.api_client import ApiClient
 
 logger = get_task_logger(__name__)
 
@@ -17,7 +18,7 @@ class PhantomasGet(celery_app.Task):
     def __init__(self, *args, **kwargs):
         self.__phantomas_path = settings.SPARROW_TEST_RUNNER['phantomas_path']
 
-    def run(self, url, retries=1, query_params=None):
+    def run(self, result_uri, url, retries=1, query_params=None, **params):
         logger.info('Starting getting data ({0} runs) with Phantomas for url: {1}'.format(retries, url))
 
         phantomas_runner = phantomas.Phantomas(
@@ -29,14 +30,15 @@ class PhantomasGet(celery_app.Task):
         def run_test():
             return phantomas_runner.run()
 
-        all_runs = collect_results(run_test,retries)
+        all_runs = collect_results(run_test, retries)
 
-        return {
+        logger.info('Sending results from Phantomas for url: {0}'.format(url))
+
+        # posting raw results
+        ApiClient.post(params['raw_result_uri'], {
+            'result': result_uri,
             'generator': 'phantomas',
-            'context': {
-                'url': url,
-                'origin': 'phantomas'
-            },
+            'context': {'url': url, 'origin': 'phantomas', },
             'data': [
                 {
                     'generator': single_run.get_generator(),
@@ -47,5 +49,7 @@ class PhantomasGet(celery_app.Task):
                     }
                 }
                 for single_run in all_runs
-            ]
-        }
+            ],
+        })
+
+        return result_uri

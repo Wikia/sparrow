@@ -62,7 +62,7 @@ class Task(models.Model):
             task_status_changed.send(self.__class__, instance=self)
             self.__original_status = self.status
 
-    def run(self, result_uri, task_uri, test_run_uri):
+    def run(self, results_uri, raw_result_uri, task_uri, test_run_uri):
         test_run = self.test_run
         suite = SimpleTestSuite()
         result = suite.run(
@@ -70,7 +70,8 @@ class Task(models.Model):
             url=test_run.test_run_uri,
             app_commit=test_run.app_commit,
             config_commit=test_run.config_commit,
-            result_uri=result_uri,
+            results_uri=results_uri,
+            raw_result_uri=raw_result_uri,
             task_uri=task_uri,
             test_run_uri=test_run_uri
         )

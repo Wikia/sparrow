@@ -1,36 +1,56 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.test.utils import override_settings
+from django.core.urlresolvers import reverse
 import mock
+import re
+import responses
+from model_mommy import mommy
 
+from results.models import TestRawResult
 from rest_framework.test import APITestCase
 from testrunner.tasks.selenium_get import SeleniumGet
 from tests.mocks.chrome import ChromeMock
+from tests.mocks.requests import post_response
 
 
 @override_settings(SELENIUM_USE_VIRTUAL_DISPLAY=False)
 class TestResultTestCase(APITestCase):
+    def setUp(self):
+        self.result = mommy.make('results.TestResult')
 
     @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
     @mock.patch('selenium.webdriver.support.wait.WebDriverWait', mock.MagicMock())
     @mock.patch('testrunner.tasks.selenium_get.Display', mock.MagicMock())
-    def test_selenium_tests(self):
+    @responses.activate
+    @post_response
+    def test_selenium_tests(self, post_callback):
         url = 'http://muppet.wikia.com'
         hostname = 'wikia.com'
 
-        selenium_get = SeleniumGet()
-        result_list = selenium_get.run(url=url, retries=2, tests=[
-            dict(test_func='enter_page',
-                             test_name='enter_page', params={'url' : url}),
-            dict(test_func='perftest_oasis_anon_search_pageviews',
-                             test_name='perftest_oasis_anon_search_pageviews', params={'hostname' : hostname}),
-            dict(test_func='perftest_oasis_user_search_pageviews',
-                             test_name='perftest_oasis_user_search_pageviews', params={'hostname' : hostname})
-        ])['data']
+        api_uri = re.compile(r'https?://testserver')
 
-        self.assertEqual(len(result_list), 3)
-        self.assertEqual(result_list['enter_page'][0]['result']['total_load_time'], 7)
-        self.assertEqual(result_list['enter_page'][0]['result']['steps'][0]['url'], 'http://muppet.wikia.com')
-        self.assertEqual(result_list['enter_page'][0]['result']['steps'][0]['backend_time'], 1)
-        self.assertEqual(result_list['perftest_oasis_anon_search_pageviews'][0]['result']['total_load_time'], 7)
-        self.assertEqual(result_list['perftest_oasis_user_search_pageviews'][0]['result']['total_load_time'], 7)
+        # mocking API results calls
+        responses.add_callback(responses.POST, api_uri, callback=post_callback,
+                               content_type='application/json')
+
+        selenium_get = SeleniumGet()
+        tests = [
+            dict(test_func='enter_page', test_name='enter_page', params={'url': url}),
+            dict(test_func='perftest_oasis_anon_search_pageviews', test_name='perftest_oasis_anon_search_pageviews',
+                 params={'hostname': hostname}),
+            dict(test_func='perftest_oasis_user_search_pageviews', test_name='perftest_oasis_user_search_pageviews',
+                 params={'hostname': hostname})
+        ]
+        selenium_get.run(url=url, retries=2, raw_result_uri='http://testserver' + reverse('testrawresult-list'),
+                         result_uri=reverse('testresult-detail', args=[self.result.id, ]), tests=tests)
+
+        raw_result = TestRawResult.objects.last()
+        result = raw_result.data
+
+        self.assertEqual(len(result), 3)
+        self.assertEqual(result['enter_page'][0]['result']['total_load_time'], 7)
+        self.assertEqual(result['enter_page'][0]['result']['steps'][0]['url'], 'http://muppet.wikia.com')
+        self.assertEqual(result['enter_page'][0]['result']['steps'][0]['backend_time'], 1)
+        self.assertEqual(result['perftest_oasis_anon_search_pageviews'][0]['result']['total_load_time'], 7)
+        self.assertEqual(result['perftest_oasis_user_search_pageviews'][0]['result']['total_load_time'], 7)

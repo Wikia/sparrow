@@ -8,6 +8,7 @@ import time
 from common.utils import collect_results
 
 from testrunner import app as celery_app
+from testrunner.api_client import ApiClient
 
 
 logger = get_task_logger(__name__)
@@ -17,7 +18,7 @@ class HttpGet(celery_app.Task):
     def get_current_time(self):
         return time.time()
 
-    def run(self, url, retries=1, query_params=None):
+    def run(self, result_uri, url, retries=1, query_params=None, **params):
         def run_test():
             logger.info('HTTP GET request: {} with params={}'.format(url, query_params))
             start_time = self.get_current_time()
@@ -32,35 +33,31 @@ class HttpGet(celery_app.Task):
                 'time': elapsed_time
             }
 
-        results = collect_results(run_test,retries)
+        results = collect_results(run_test, retries)
 
-        return {
-            'generator': 'python.requests',
-            'context': {
-                'url': url,
-                'origin': 'python.requests'
-            },
-            'data': results
-        }
+        logger.info('Sending results from HttpGet for url: {0}'.format(url))
+
+        # posting raw results
+        ApiClient.post(params['raw_result_uri'], {
+            'result': result_uri,
+            'generator': params.get('generator', 'python.requests'),
+            'context': params.get('context', {'url': url, 'origin': 'python.requests', }),
+            'data': results,
+        })
+
+        return result_uri
 
 
 class MWProfilerGet(HttpGet):
-    def run(self, url, retries=1, query_params=None):
+    def run(self, result_uri, url, retries=1, query_params=None, **params):
         if query_params is None:
             query_params = {}
 
         query_params['forceprofile'] = 1
+        params['context'] = {'url': url, 'origin': 'mw_profiler'}
+        params['generator'] = 'mw_profiler'
 
-        get_result = HttpGet.run(self, url, retries, query_params)
-
-        return {
-            'generator': 'mw_profiler',
-            'context': get_result['context'],
-            'data': [
-                dict(single_result, **{'profiler_data': self.extract_profiler_data(single_result['content'])})
-                for single_result in get_result['data']
-            ]
-        }
+        return HttpGet.run(self, result_uri, url, retries, query_params, **params)
 
     def extract_profiler_data(self, response_content):
         try:

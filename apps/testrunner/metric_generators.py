@@ -1,5 +1,6 @@
 from collections import defaultdict
 import re
+import ujson
 from metrics import MetricType, Collection, Metric
 
 
@@ -10,7 +11,7 @@ class MetricGenerator(object):
         generator = payload['generator']
         if generator not in self.ACCEPT_GENERATORS:
             return metrics
-        context = payload['context'].copy()
+        context = payload['context']
         data = payload['data']
         metrics += self.extract(context, data)
         return metrics
@@ -136,7 +137,7 @@ class ProfilerMetricGenerator(MetricGenerator):
         }
 
         for single_run in data:
-            data = self.parse_data(single_run['profiler_data'])
+            data = self.parse_data(single_run['content'])
             for name, raw_value in data.items():
                 metrics[name].add_value(raw_value, None)
 
