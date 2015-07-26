@@ -19,12 +19,8 @@ from tests.mocks.requests import post_response, get_response, put_response
 from tests.mocks.phantomas import PhantomasMock
 from tests.mocks.chrome import ChromeMock
 
-CURRENT_TIME_MOCK = 1401041000
-
 def time_time_mock(*args, **kwargs):
-    global CURRENT_TIME_MOCK
-    CURRENT_TIME_MOCK += 2
-    return CURRENT_TIME_MOCK
+    return 2
 
 def noop(*args, **kwargs):
     pass
@@ -81,7 +77,7 @@ class TestResultTestCase(APITestCase):
     @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
     @mock.patch('selenium.webdriver.support.wait.WebDriverWait', mock.MagicMock())
     @mock.patch('testrunner.tasks.selenium_get.Display', mock.MagicMock())
-    @mock.patch('testrunner.tasks.http_get.HttpGet.get_current_time', time_time_mock)
+    @mock.patch('testrunner.tasks.http_get.HttpGet._elapsed_time', time_time_mock)
     @responses.activate
     @post_response
     @get_response

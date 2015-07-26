@@ -4,7 +4,6 @@ import re
 
 from celery.utils.log import get_task_logger
 import requests
-import time
 from common.utils import collect_results
 
 from testrunner import app as celery_app
@@ -15,25 +14,24 @@ logger = get_task_logger(__name__)
 
 
 class HttpGet(celery_app.Task):
-    def get_current_time(self):
-        return time.time()
-
     def _parse_content(self, response_content):
-        return ''
+        pass
+
+    def _elapsed_time(self, response):
+        return response.elapsed.microseconds
 
     def run(self, result_uri, url, retries=1, query_params=None, **params):
         def run_test():
             logger.info('HTTP GET request: {} with params={}'.format(url, query_params))
-            start_time = self.get_current_time()
             response = requests.get(url, params=query_params)
-            elapsed_time = self.get_current_time() - start_time
             if not response.ok:
                 logger.debug('HTTP status {}: {}'.format(response.status_code, response.content))
             response.raise_for_status()
             return {
                 'content': self._parse_content(response.text),
+                'content_length': len(response.text),
                 'headers': dict(response.headers),
-                'time': elapsed_time
+                'time': self._elapsed_time(response),
             }
 
         results = collect_results(run_test, retries)

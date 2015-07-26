@@ -214,7 +214,7 @@ class RequestsMetricGenerator(MetricGenerator):
         ]))
 
         metrics.add(Metric('server.app.response_size', context, MetricType.BYTES, values=[
-            (len(single_run['content']), None)
+            (single_run['content_length'], None)
             for single_run in data
         ]))
 
