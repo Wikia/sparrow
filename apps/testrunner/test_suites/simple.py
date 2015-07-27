@@ -78,9 +78,8 @@ class SimpleTestSuite(object):
 
 class SimpleTestSuiteTask(celery_app.Task):
     def run(self, *args, **kwargs):
-        test_runner_config = settings.SPARROW_TEST_RUNNER
-        DEPLOY_HOST = test_runner_config['deploy_host']['hostname']
-        TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
+        DEPLOY_HOST = settings.DEPLOYTOOLS_MASTER
+        TARGET_ENV = settings.TEST_TARGET_HOSTS[0]
 
         deploy_result = Deploy().run(
             deploy_host=DEPLOY_HOST,
