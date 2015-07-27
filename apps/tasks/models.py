@@ -65,9 +65,9 @@ class Task(models.Model):
             self.__original_status = self.status
 
     def run(self):
-        result_uri=build_absolute_uri(reverse('testresult-list')),
-        task_uri=build_absolute_uri(reverse('task-detail', args=[self.id, ])),
-        test_run_uri=build_absolute_uri(reverse('testrun-detail', args=[self.test_run_id, ])),
+        result_uri=build_absolute_uri(reverse('testresult-list'))
+        task_uri=build_absolute_uri(reverse('task-detail', args=[self.id, ]))
+        test_run_uri=build_absolute_uri(reverse('testrun-detail', args=[self.test_run_id, ]))
 
         test_run = self.test_run
         suite = SimpleTestSuite()
