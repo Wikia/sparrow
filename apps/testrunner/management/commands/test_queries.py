@@ -6,11 +6,6 @@ from metrics import Collection
 from metrics.queries import Query
 
 
-
-def build_absolute_uri(uri):
-    return settings.API_SERVER_URL + uri
-
-
 class Command(BaseCommand):
     help = 'Runs sample query against collected metrics'
 

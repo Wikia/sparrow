@@ -3,12 +3,9 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 import ujson
 import requests
+from common.utils import build_absolute_uri
 from metrics import Collection
 from testrunner.metric_sets import BasicMetricSet
-
-
-def build_absolute_uri(uri):
-    return settings.API_SERVER_URL + uri
 
 
 class Command(BaseCommand):
