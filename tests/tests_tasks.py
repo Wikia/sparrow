@@ -7,6 +7,7 @@ import mock
 import responses
 import re
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.test import override_settings
 from rest_framework import status
@@ -32,6 +33,7 @@ def noop(*args, **kwargs):
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(API_SERVER_URL='http://testserver')
 class TestResultTestCase(APITestCase):
     def setUp(self):
         self.test_run = mommy.make('test_runs.TestRun')
