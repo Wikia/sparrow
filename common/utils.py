@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.conf import settings
 
 def camel2snake(text):
     """ Converts a CamelCase name into an under_score name.
@@ -45,3 +46,6 @@ def collect_results(func, count, error_limit=3):
             if consecutive_errors >= error_limit:
                 raise
     return results
+
+def build_absolute_uri(uri):
+    return settings.API_SERVER_URL + uri

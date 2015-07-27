@@ -60,6 +60,11 @@ class TestRun(models.Model):
                 status=TaskStatus.PENDING
             ).save()
 
+    def save_and_run(self, *args, **kwargs):
+        self.save(*args, **kwargs)
+        for task in self.tasks.objects.filter(job_id=None):
+            task.run()
+
     @property
     def app_commit(self):
         return self.main_revision

@@ -37,7 +37,7 @@ def find_or_create_test_run(url, app_commit, config_commit):
             main_revision=app_commit,
             secondary_revision=config_commit,
         )
-        test_run.save()
+        test_run.save_and_run()
         logger.debug('Created TestRun.id = {}'.format(test_run.id))
     else:
         test_run = test_run[0]
@@ -52,7 +52,7 @@ def create_test_run(url, app_commit, config_commit):
         main_revision=app_commit,
         secondary_revision=config_commit,
     )
-    test_run.save()
+    test_run.save_and_run()
     logger.debug('Created TestRun.id = {}'.format(test_run.id))
     return test_run
 
