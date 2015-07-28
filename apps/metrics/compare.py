@@ -1,4 +1,4 @@
-from testrunner.metric_sets import BasicMetricSet
+from testrunner.metric_sets import StableMetricSet
 
 
 def val_to_str(value, all_values):
@@ -19,7 +19,7 @@ def val_to_str(value, all_values):
 class Compare(object):
     def __init__(self, test_runs):
         self.test_runs = test_runs
-        self.stats_list = [BasicMetricSet(test_run.get_metrics()).items for test_run in test_runs]
+        self.stats_list = [StableMetricSet(test_run.get_metrics()).items for test_run in test_runs]
 
         if len(self.stats_list) != 2:
             raise ValueError("Currently only comparing two stats sets is supported!")
@@ -49,7 +49,7 @@ class CompareResultSet(dict):
             -1: ':x:'
         }
         s = [
-            'Metric | | {} | % | {}'.format(*[test_run.main_revision for test_run in self.test_runs]),
+            'Metric | | {} | % | {}'.format(*[test_run.name for test_run in self.test_runs]),
             '--- |:---:| ---:| ---:|---:'
         ]
         for key, res in sorted(self.items(), key=lambda kv: kv[0]):
