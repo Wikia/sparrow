@@ -30,6 +30,11 @@ class TestRunStatus(enum.Enum):
 
 class TestRun(models.Model):
     id = models.AutoField(primary_key=True)
+    name = models.CharField(
+        max_length=250,
+        null=True,
+        blank=True
+    )
     test_run_uri = models.URLField()
     main_revision = models.CharField(
         max_length=40,
