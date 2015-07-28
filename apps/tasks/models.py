@@ -11,8 +11,8 @@ from common.utils import build_absolute_uri
 
 from testrunner.test_suites.simple import SimpleTestSuite
 
+from .signals import *
 
-task_status_changed = django.dispatch.Signal(providing_args=['instance', ])
 
 
 class TaskStatus(enum.Enum):
@@ -72,6 +72,7 @@ class Task(models.Model):
         test_run = self.test_run
         suite = SimpleTestSuite()
         result = suite.run(
+            task_id=self.id,
             retries=test_run.retries,
             url=test_run.test_run_uri,
             app_commit=test_run.app_commit,
