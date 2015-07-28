@@ -6,13 +6,6 @@ from metrics import Collection
 from metrics.queries import Query
 
 
-
-def build_absolute_uri(uri):
-    api_url = settings.SPARROW_TEST_RUNNER['api_server']
-    api_url = api_url[:api_url.index('/api/v1/')]
-    return api_url + uri
-
-
 class Command(BaseCommand):
     help = 'Runs sample query against collected metrics'
 
