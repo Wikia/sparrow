@@ -1,6 +1,7 @@
 # Base settings file
 
 import os
+import socket
 import sys
 from unipath import Path
 
@@ -210,20 +211,19 @@ LOGGING = {
 import logging.config
 logging.config.dictConfig(LOGGING)
 
-SPARROW_TEST_RUNNER = {
-    'deploy_host': {
-        'hostname': get_env_var('SPARROW_RUNNER_DEPLOY_HOST'),
-    },
-    'target_hosts': [
-        {
-            'hostname': get_env_var('SPARROW_RUNNER_TARGET_HOST'),
-        }
-    ],
-    'api_server': get_env_var('SPARROW_API_URI'),
-    'phantomas_path': get_env_var('SPARROW_RUNNER_PHANTOMAS'),
-    'use_virtual_display': ('DISPLAY' not in os.environ) or (os.environ.get('SPARROW_FORCE_VIRTUAL_DISPLAY','0') != '0'),
-}
+# api server (defaults to hostname)
+API_SERVER_URL = get_env_var('SPARROW_API_SERVER_URL', 'http://' + socket.gethostname()).rstrip('/')
 
+# deploy tools
+DEPLOYTOOLS_MASTER = get_env_var('SPARROW_RUNNER_DEPLOY_HOST')
+TEST_TARGET_HOSTS = [get_env_var('SPARROW_RUNNER_TARGET_HOST')]
+
+# external tools
+PHANTOMAS_PATH = get_env_var('SPARROW_RUNNER_PHANTOMAS')
 CRHOMEDRIVER_PATH = get_env_var('SPARROW_RUNNER_CHROMEDRIVER')
 
+# selenium test configuration
+SELENIUM_USE_VIRTUAL_DISPLAY = ('DISPLAY' not in os.environ) or (os.environ.get('SPARROW_FORCE_VIRTUAL_DISPLAY','0') != '0')
+
+# external services
 GITHUB_TOKEN  = get_env_var('SPARROW_GITHUB_TOKEN')

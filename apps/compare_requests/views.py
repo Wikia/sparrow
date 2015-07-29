@@ -16,12 +16,12 @@ from common.github_integration import GitHub
 APP_TARGET_BRANCH = 'dev'
 CONFIG_REPO = 'Wikia/config'
 CONFIG_BRANCH = 'dev'
-COMPARE_URL = 'http://muppet.synth1.wikia-dev.com/wiki/Kermit'
+COMPARE_URL = 'http://muppet.synth1.wikia-dev.com/wiki/Kermit?noexternals=1'
 
 logger = logging.getLogger(__name__)
 
 
-def find_or_create_test_run(url, app_commit, config_commit):
+def find_or_create_test_run(url, name, app_commit, config_commit):
     logger.debug('Searching for test run: url={} app_commit={} config_commit={}'.format(
         url, app_commit, config_commit
     ))
@@ -35,10 +35,11 @@ def find_or_create_test_run(url, app_commit, config_commit):
         logger.debug('  not found, creating new one...')
         test_run = TestRun(
             test_run_uri=url,
+            name=name,
             main_revision=app_commit,
             secondary_revision=config_commit,
         )
-        test_run.save()
+        test_run.save_and_run()
         logger.debug('Created TestRun.id = {}'.format(test_run.id))
     else:
         test_run = test_run[0]
@@ -46,14 +47,15 @@ def find_or_create_test_run(url, app_commit, config_commit):
     return test_run
 
 
-def create_test_run(url, app_commit, config_commit):
+def create_test_run(url, name, app_commit, config_commit):
     logger.debug('Creating test run...')
     test_run = TestRun(
         test_run_uri=url,
+        name=name,
         main_revision=app_commit,
         secondary_revision=config_commit,
     )
-    test_run.save()
+    test_run.save_and_run()
     logger.debug('Created TestRun.id = {}'.format(test_run.id))
     return test_run
 
@@ -116,13 +118,17 @@ class CompareRequestViewSet(viewsets.ModelViewSet):
 
             compare_request.head_ref = app_branch_info['ref']
             compare_request.head_sha = app_merged_info['sha']
-            compare_request.head_test_run = create_test_run(COMPARE_URL, app_branch_info['ref'],
-                                                            config_dev_info['ref'])
+            compare_request.head_test_run = create_test_run(COMPARE_URL,
+                                                            app_branch_info['ref'],
+                                                            app_merged_info['sha'],
+                                                            config_dev_info['sha'])
 
             compare_request.base_ref = app_dev_info['ref']
             compare_request.base_sha = app_dev_info['sha']
-            compare_request.base_test_run = create_test_run(COMPARE_URL, app_dev_info['ref'],
-                                                            config_dev_info['ref'])
+            compare_request.base_test_run = create_test_run(COMPARE_URL,
+                                                            app_dev_info['ref'],
+                                                            app_dev_info['sha'],
+                                                            config_dev_info['sha'])
 
             compare_request.save()
             logger.debug('Created CompareRequest.id = {}'.format(compare_request.id))

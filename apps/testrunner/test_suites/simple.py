@@ -21,9 +21,8 @@ class SimpleTestSuite(object):
     DEFAULT_RETRIES_COUNT = 10
 
     def __init__(self, *args, **kwargs):
-        test_runner_config = settings.SPARROW_TEST_RUNNER
-        self.DEPLOY_HOST = test_runner_config['deploy_host']['hostname']
-        self.TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
+        self.DEPLOY_HOST = settings.DEPLOYTOOLS_MASTER
+        self.TARGET_ENV = settings.TEST_TARGET_HOSTS[0]
 
     def run(self, **kwargs):
         if kwargs.get('retries') is None:
@@ -79,9 +78,8 @@ class SimpleTestSuite(object):
 
 class SimpleTestSuiteTask(celery_app.Task):
     def run(self, *args, **kwargs):
-        test_runner_config = settings.SPARROW_TEST_RUNNER
-        DEPLOY_HOST = test_runner_config['deploy_host']['hostname']
-        TARGET_ENV = test_runner_config['target_hosts'][0]['hostname']
+        DEPLOY_HOST = settings.DEPLOYTOOLS_MASTER
+        TARGET_ENV = settings.TEST_TARGET_HOSTS[0]
 
         deploy_result = Deploy().run(
             deploy_host=DEPLOY_HOST,
