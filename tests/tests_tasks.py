@@ -106,6 +106,7 @@ class TestResultTestCase(APITestCase):
                       body=self.mw_content, status=status.HTTP_200_OK,
                       adding_headers={'X-Backend-Response-Time': '123', })
 
+        # mocking task status update requests
         responses.add(responses.PATCH, api_uri,
                       body='{}', status=status.HTTP_200_OK)
 
