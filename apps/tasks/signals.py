@@ -4,7 +4,7 @@ from django.dispatch import receiver
 
 logger = logging.getLogger(__name__)
 
-ALL = ['task_status_changed', 'task_manager_request_status_update']
+__all__ = ['task_status_changed', 'celery_request_status_update']
 
 task_status_changed = django.dispatch.Signal(providing_args=['instance', ])
 celery_request_status_update = django.dispatch.Signal(providing_args=['task_id', 'job_id', 'status'])

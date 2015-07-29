@@ -11,7 +11,7 @@ from common.utils import build_absolute_uri
 
 from testrunner.test_suites.simple import SimpleTestSuite
 
-from .signals import *
+from .signals import task_status_changed
 
 
 
