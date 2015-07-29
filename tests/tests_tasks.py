@@ -106,6 +106,9 @@ class TestResultTestCase(APITestCase):
                       body=self.mw_content, status=status.HTTP_200_OK,
                       adding_headers={'X-Backend-Response-Time': '123', })
 
+        responses.add(responses.PATCH, api_uri,
+                      body='{}', status=status.HTTP_200_OK)
+
         # mocking API results calls
         responses.add_callback(responses.POST, api_uri, callback=post_callback,
                                content_type='application/json')
