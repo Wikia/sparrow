@@ -46,19 +46,9 @@ class CompareRequestViewSet(viewsets.ModelViewSet):
             github.post_pull_request_comment(repo_name, pull_req_num, self.get_merge_failed_message())
             raise
 
-
-        compare_request = create_compare_request.result
-        if not create_compare_request.status:
-            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        else:
-            if create_compare_request.was_created:
-                status_code = status.HTTP_201_CREATED
-            else:
-                status_code = status.HTTP_200_OK
-
-        serializer = CompareRequestSerializer(compare_request, context=self.get_serializer_context())
+        serializer = CompareRequestSerializer(create_compare_request.result, context=self.get_serializer_context())
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status_code, headers=headers)
+        return Response(serializer.data, status=create_compare_request.http_status, headers=headers)
 
     def get_merge_failed_message(self):
         return ':exclamation: [WikiaSparrow] Could not merge your branch with dev. Please update your branch and request the test again.'
@@ -215,3 +205,14 @@ class CreateCompareRequest(object):
                                             self.app_dev_info[REF],
                                             self.app_dev_info[SHA],
                                             self.config_dev_info[SHA])
+
+    @property
+    def http_status(self):
+        if not self.status:
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        elif self.was_created:
+            status_code = status.HTTP_201_CREATED
+        else:
+            status_code = status.HTTP_200_OK
+
+        return status_code
