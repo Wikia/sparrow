@@ -114,9 +114,12 @@ class SimpleTestSuiteTask(celery_app.Task):
             test_run_uri=kwargs['test_run_uri']
         )
 
-    def on_success(self, retval, task_id, args, kwargs):
+    def forget_result(self, task_id):
         result = self.AsyncResult(task_id)
         result.forget()
+
+    def on_success(self, retval, task_id, args, kwargs):
+        self.forget_result(task_id)
         celery_request_status_update.send(self.__class__, task_id=kwargs['task_id'], job_id=task_id,
                                                 status=celery.states.SUCCESS)
 
