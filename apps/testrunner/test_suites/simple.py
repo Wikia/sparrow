@@ -4,7 +4,9 @@ from __future__ import unicode_literals
 from django.conf import settings
 import ujson
 from celery import group
+import celery.states
 from celery.utils.log import get_task_logger
+from tasks.signals import celery_request_status_update
 
 from testrunner.tasks.deploy import Deploy
 from testrunner.tasks.http_get import HttpGet
@@ -43,7 +45,6 @@ class SimpleTestSuite(object):
 
         return result
 
-
     def get_multiple_tasks(self, **kwargs):
         tasks = (
             Deploy().s(
@@ -77,9 +78,12 @@ class SimpleTestSuite(object):
 
 
 class SimpleTestSuiteTask(celery_app.Task):
-    def run(self, *args, **kwargs):
+    def run(self, task_id=None, *args, **kwargs):
         DEPLOY_HOST = settings.DEPLOYTOOLS_MASTER
         TARGET_ENV = settings.TEST_TARGET_HOSTS[0]
+
+        celery_request_status_update.send(self.__class__, task_id=task_id, job_id=self.request.id,
+                                                status=celery.states.STARTED)
 
         deploy_result = Deploy().run(
             deploy_host=DEPLOY_HOST,
@@ -110,6 +114,15 @@ class SimpleTestSuiteTask(celery_app.Task):
             test_run_uri=kwargs['test_run_uri']
         )
 
-    def on_success(self, retval, task_id, args, kwargs):
+    def forget_result(self, task_id):
         result = self.AsyncResult(task_id)
         result.forget()
+
+    def on_success(self, retval, task_id, args, kwargs):
+        self.forget_result(task_id)
+        celery_request_status_update.send(self.__class__, task_id=kwargs['task_id'], job_id=task_id,
+                                                status=celery.states.SUCCESS)
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        celery_request_status_update.send(self.__class__, task_id=kwargs['task_id'], job_id=task_id,
+                                                status=celery.states.FAILURE)
