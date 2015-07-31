@@ -64,7 +64,7 @@ class CompareRequest(models.Model):
         Add comment about test execution error
         """
 
-        text = "Performance comparison ended up with errors. Please inspect logs for more details."
+        text = ":exclamation: [WikiaSparrow] Could not execute the test suite. Please inspect logs for more details."
         self.notify_pull_request(text)
 
     def notify_pull_request(self, text):
