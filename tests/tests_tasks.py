@@ -12,6 +12,7 @@ from django.core.urlresolvers import reverse
 from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
+import ujson
 from metrics.values import Stats
 
 from tasks.models import TaskStatus
@@ -167,3 +168,15 @@ class TestResultTestCase(APITestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT,
                          msg='Delete failed: {0}'.format(response.data))
+
+    @responses.activate
+    def test_run_task(self):
+        url = reverse('task-detail', args=[self.task_to_delete.id, ])
+        api_uri = re.compile(r'https?://testserver')
+
+        response = self.client.patch(url, {'status': 1})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        results = ujson.loads(response.content)
+
+        self.assertEqual(results['status'], 1)
