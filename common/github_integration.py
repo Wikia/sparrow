@@ -3,6 +3,9 @@ from django.conf import settings
 import github
 
 
+class MergeFailed(Exception):
+    pass
+
 class GitHub(object):
     def __init__(self):
         self.github = github.Github(settings.GITHUB_TOKEN)
@@ -48,8 +51,11 @@ class GitHub(object):
         repo = self.get_repo(repo_name)
         target_ref = repo.create_git_ref(target_ref_full_name, shas[0])
 
-        for i in range(1, len(shas)):
-            merge_commit = repo.merge(target_ref, shas[i], 'Sparrow Code Setup: Merging "{}"'.format(shas[i]))
+        try:
+            for i in range(1, len(shas)):
+                merge_commit = repo.merge(target_ref.ref, shas[i], 'Sparrow Code Setup: Merging "{}"'.format(shas[i]))
+        except github.GithubExceptionion as e:
+            raise MergeFailed('Git merge failed', e)
 
         return {
             'repo': repo_name,
@@ -58,3 +64,4 @@ class GitHub(object):
                 'sha': merge_commit.sha
             }
         }
+

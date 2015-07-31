@@ -67,7 +67,7 @@ class TestRun(models.Model):
 
     def save_and_run(self, *args, **kwargs):
         self.save(*args, **kwargs)
-        for task in self.tasks.objects.filter(job_id=None):
+        for task in self.tasks.filter(job_id=None):
             task.run()
 
     @property
