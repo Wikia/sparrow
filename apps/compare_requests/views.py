@@ -53,6 +53,7 @@ class CompareRequestViewSet(viewsets.ModelViewSet):
     def get_merge_failed_message(self):
         return ':exclamation: [WikiaSparrow] Could not merge your branch with dev. Please update your branch and request the test again.'
 
+
 class CreateCompareRequest(object):
     def __init__(self, github, repo_name, pull_req_num):
         self.repo_name = repo_name
@@ -64,7 +65,8 @@ class CreateCompareRequest(object):
         self.result = None
 
     def execute(self):
-        compare_request = self.find_compare_request(self.app_branch_info[SHA], self.app_dev_info[SHA])
+        # compare_request = self.find_compare_request(self.app_branch_info[SHA], self.app_dev_info[SHA])
+        compare_request = None
 
         if compare_request is not None:
             self.was_created = False
@@ -84,7 +86,7 @@ class CreateCompareRequest(object):
 
         compare_request.head_ref = self.app_branch_info[REF]
         compare_request.head_sha = self.app_branch_info[SHA]
-        compare_request.head_test_run = self.branch_test_run # branch merged with dev
+        compare_request.head_test_run = self.branch_test_run  # branch merged with dev
 
         compare_request.base_ref = self.app_dev_info[REF]
         compare_request.base_sha = self.app_dev_info[SHA]
@@ -110,7 +112,6 @@ class CreateCompareRequest(object):
         compare_request = existing_requests[0]
         logger.debug('Compare request found! CompareRequest.id = {}'.format(compare_request.id))
         return compare_request
-
 
     def find_or_create_test_run(self, url, name, app_commit, config_commit):
         test_run = self.find_test_run(url, name, app_commit, config_commit)
@@ -138,7 +139,6 @@ class CreateCompareRequest(object):
         test_run = test_runs[0]
         logger.debug('Test run found! TestRun.id = {}'.format(test_run.id))
         return test_run
-
 
     def create_test_run(self, url, name, app_commit, config_commit):
         logger.debug('Creating test run [{}, {}, {}, {}]...'.format(url, name, app_commit, config_commit))
@@ -187,24 +187,25 @@ class CreateCompareRequest(object):
             else:
                 raise
 
-        app_merged_info = self.github.create_merged_ref(self.repo_name, app_merged_branch_name, self.app_branch_info[SHA],
+        app_merged_info = self.github.create_merged_ref(self.repo_name, app_merged_branch_name,
+                                                        self.app_branch_info[SHA],
                                                         APP_TARGET_BRANCH)
 
         return app_merged_info['head']
 
     @cached_property
     def branch_test_run(self):
-        return self.find_or_create_test_run(COMPARE_URL,
-                                            self.app_branch_info[REF],
-                                            self.app_merged_info[SHA],
-                                            self.config_dev_info[SHA])
+        return self.create_test_run(COMPARE_URL,
+                                    self.app_branch_info[REF],
+                                    self.app_merged_info[SHA],
+                                    self.config_dev_info[SHA])
 
     @cached_property
     def dev_test_run(self):
-        return self.find_or_create_test_run(COMPARE_URL,
-                                            self.app_dev_info[REF],
-                                            self.app_dev_info[SHA],
-                                            self.config_dev_info[SHA])
+        return self.create_test_run(COMPARE_URL,
+                                    self.app_dev_info[REF],
+                                    self.app_dev_info[SHA],
+                                    self.config_dev_info[SHA])
 
     @property
     def http_status(self):
