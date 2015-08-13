@@ -75,3 +75,22 @@ def delete_response(f):
         f(self, *args, **kwargs)
 
     return delete_wrapper
+
+def patch_response(f):
+    """Decorator to mock API PATCH using response library (requires @response.activate)"""
+    @wraps(f)
+    def patch_wrapper(self, *args, **kwargs):
+        # callback to mock API response
+        def request_callback(request):
+            api_response = self.client.patch(request.url, data=ujson.decode(request.body), headers=request.headers)
+            if not hasattr(self, 'response_data'):
+                self.response_data = []
+            self.response_data.append(api_response.data)
+
+            return api_response.status_code, {}, api_response.content
+
+        kwargs['patch_callback'] = request_callback
+        f(self, *args, **kwargs)
+
+    return patch_wrapper
+

@@ -16,7 +16,7 @@ class PhantomasGet(celery_app.Task):
     CONSECUTIVE_FAILURES_LIMIT = 5
 
     def __init__(self, *args, **kwargs):
-        self.__phantomas_path = settings.SPARROW_TEST_RUNNER['phantomas_path']
+        self.__phantomas_path = settings.PHANTOMAS_PATH
 
     def run(self, result_uri, url, retries=1, query_params=None, **params):
         logger.info('Starting getting data ({0} runs) with Phantomas for url: {1}'.format(retries, url))

@@ -2,17 +2,13 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.core.urlresolvers import reverse
 import ujson
+from common.utils import build_absolute_uri
 
 from testrunner.tasks.http_get import MWProfilerGet, HttpGet
 from testrunner.tasks.phantomas_get import PhantomasGet
 from testrunner.tasks.process_results import ProcessResponses
 from testrunner.tasks.selenium_get import SeleniumGet
 
-
-def build_absolute_uri(uri):
-    api_url = settings.SPARROW_TEST_RUNNER['api_server']
-    api_url = api_url[:api_url.index('/api/v1/')]
-    return api_url + uri
 
 
 class Command(BaseCommand):
