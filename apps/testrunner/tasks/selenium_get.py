@@ -9,7 +9,7 @@ from pyvirtualdisplay.display import Display
 from selenium.webdriver import DesiredCapabilities
 from selenium import webdriver
 from common.utils import collect_results
-from testrunner import app as celery_app
+from base_task import BaseTask
 from testrunner.test_suites.selenium_tests import selenium_tests
 from testrunner.test_suites.selenium_tests.selenium_timer import SeleniumTimer
 from common import media_wiki_tools
@@ -29,7 +29,7 @@ class quitting(object):
         self.thing.quit()
 
 
-class SeleniumGet(celery_app.Task):
+class SeleniumGet(BaseTask):
     @staticmethod
     def get_driver():
         caps = DesiredCapabilities.CHROME
@@ -66,6 +66,9 @@ class SeleniumGet(celery_app.Task):
 
     def run(self, result_uri, url, retries=1, tests=None, **params):
         logger.info('Starting getting data ({0} runs) with selenium for url: {1}'.format(retries, url))
+
+        self.position = params.get('task_position', self.MIDDLE)
+        self.on_start(params['task_uri'])
 
         results = {}
         if tests is None:

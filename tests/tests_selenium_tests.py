@@ -11,20 +11,22 @@ from results.models import TestRawResult
 from rest_framework.test import APITestCase
 from testrunner.tasks.selenium_get import SeleniumGet
 from tests.mocks.chrome import ChromeMock
-from tests.mocks.requests import post_response
+from tests.mocks.requests import post_response, patch_response
 
 
 @override_settings(SELENIUM_USE_VIRTUAL_DISPLAY=False)
 class TestResultTestCase(APITestCase):
     def setUp(self):
         self.result = mommy.make('results.TestResult')
+        self.task = mommy.make('tasks.Task')
 
     @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
     @mock.patch('selenium.webdriver.support.wait.WebDriverWait', mock.MagicMock())
     @mock.patch('testrunner.tasks.selenium_get.Display', mock.MagicMock())
     @responses.activate
     @post_response
-    def test_selenium_tests(self, post_callback):
+    @patch_response
+    def test_selenium_tests(self, post_callback, patch_callback):
         url = 'http://muppet.wikia.com'
         hostname = 'wikia.com'
 
@@ -33,6 +35,11 @@ class TestResultTestCase(APITestCase):
         # mocking API results calls
         responses.add_callback(responses.POST, api_uri, callback=post_callback,
                                content_type='application/json')
+
+        responses.add_callback(responses.PATCH, api_uri, callback=patch_callback,
+                               content_type='application/json')
+
+        task_uri = 'http://testserver' + reverse('task-detail', args=[self.task.id, ])
 
         selenium_get = SeleniumGet()
         tests = [
@@ -43,7 +50,7 @@ class TestResultTestCase(APITestCase):
                  params={'hostname': hostname})
         ]
         selenium_get.run(url=url, retries=2, raw_result_uri='http://testserver' + reverse('testrawresult-list'),
-                         result_uri=reverse('testresult-detail', args=[self.result.id, ]), tests=tests)
+                         result_uri=reverse('testresult-detail', args=[self.result.id, ]), tests=tests, task_uri=task_uri)
 
         raw_result = TestRawResult.objects.last()
         result = raw_result.data

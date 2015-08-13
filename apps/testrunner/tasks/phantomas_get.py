@@ -6,13 +6,13 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from common.utils import collect_results
 
-from testrunner import app as celery_app
+from base_task import BaseTask
 from testrunner.api_client import ApiClient
 
 logger = get_task_logger(__name__)
 
 
-class PhantomasGet(celery_app.Task):
+class PhantomasGet(BaseTask):
     CONSECUTIVE_FAILURES_LIMIT = 5
 
     def __init__(self, *args, **kwargs):
@@ -20,6 +20,9 @@ class PhantomasGet(celery_app.Task):
 
     def run(self, result_uri, url, retries=1, query_params=None, **params):
         logger.info('Starting getting data ({0} runs) with Phantomas for url: {1}'.format(retries, url))
+
+        self.position = params.get('task_position', self.MIDDLE)
+        self.on_start(params['task_uri'])
 
         phantomas_runner = phantomas.Phantomas(
             url=url,

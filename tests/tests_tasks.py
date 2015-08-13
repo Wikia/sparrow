@@ -175,12 +175,12 @@ class TestResultTestCase(APITestCase):
         self.assertEqual(html_size.max, 124541.0)
         self.assertEqual(other_count.max, 19.0)
 
-        # status update
-        self.assertEqual(len(patch_calls), 2)
+        # status update (7 * IN_PROGRESS + 1 * DONE)
+        self.assertEqual(len(patch_calls), 8)
         # starting -> IN PROGRESS
         self.assertEqual(patch_calls[0]['status'], TaskStatus.IN_PROGRESS)
         # finished -> DONE
-        self.assertEqual(patch_calls[1]['status'], TaskStatus.DONE)
+        self.assertEqual(patch_calls[-1]['status'], TaskStatus.DONE)
 
 
     def test_update_result(self):

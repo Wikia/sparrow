@@ -5,14 +5,17 @@ import re
 from celery.utils.log import get_task_logger
 
 from testrunner.api_client import ApiClient
-from testrunner import app as celery_app
+from base_task import BaseTask
 
 
 logger = get_task_logger(__name__)
 
 
-class PrepareResults(celery_app.Task):
-    def run(self, results_uri, test_run_uri, task_uri):
+class PrepareResults(BaseTask):
+    def run(self, results_uri, test_run_uri, task_uri, **params):
+        self.position = params.get('task_position', self.MIDDLE)
+        self.on_start(task_uri)
+
         result = ApiClient.post(results_uri, {
             'test_run': test_run_uri,
             'task': task_uri,

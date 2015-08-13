@@ -6,7 +6,7 @@ import requests
 from celery.utils.log import get_task_logger
 
 from metrics import Collection
-from testrunner import app as celery_app
+from base_task import BaseTask
 from testrunner.metric_generators import PhantomasMetricGenerator, ProfilerMetricGenerator, RequestsMetricGenerator, \
     SeleniumMetricGenerator
 from testrunner.api_client import ApiClient
@@ -14,7 +14,7 @@ from testrunner.api_client import ApiClient
 logger = get_task_logger(__name__)
 
 
-class ProcessResponses(celery_app.Task):
+class ProcessResponses(BaseTask):
     @staticmethod
     def _calculate_stats(values):
         if len(values) == 0:
@@ -46,6 +46,9 @@ class ProcessResponses(celery_app.Task):
 
     def run(self, result_uri, raw_result_uri, test_run_uri, task_uri, results_uri, **params):
         logger.info('Starting processing results...')
+
+        self.position = params.get('task_position', self.MIDDLE)
+        self.on_start(task_uri)
 
         generators = {
             'phantomas': [

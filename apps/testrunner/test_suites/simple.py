@@ -13,7 +13,7 @@ from testrunner.tasks.http_get import MWProfilerGet
 from testrunner.tasks.phantomas_get import PhantomasGet
 from testrunner.tasks.process_results import ProcessResponses
 from testrunner.tasks.selenium_get import SeleniumGet
-from testrunner import app as celery_app
+from testrunner.tasks.base_task import BaseTask
 
 logger = get_task_logger(__name__)
 
@@ -43,6 +43,8 @@ class SimpleTestSuite(object):
 
         tasks = (
             Deploy().s(
+                task_position=BaseTask.FIRST,
+                task_uri=kwargs['task_uri'],
                 deploy_host=self.DEPLOY_HOST,
                 app='wikia',
                 env=self.TARGET_ENV,
@@ -60,7 +62,7 @@ class SimpleTestSuite(object):
             MWProfilerGet().s(**task_params) |
             SeleniumGet().s(**task_params) |
             PhantomasGet().s(**task_params) |
-            ProcessResponses().s(**task_params)
+            ProcessResponses().s(task_position=BaseTask.LAST, **task_params)
         )
 
         logger.info('Scheduled execution of task #{0}: {1}'.format(kwargs['task_uri'], tasks.id))

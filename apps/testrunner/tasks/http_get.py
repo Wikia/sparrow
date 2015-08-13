@@ -6,14 +6,14 @@ from celery.utils.log import get_task_logger
 import requests
 from common.utils import collect_results
 
-from testrunner import app as celery_app
+from base_task import BaseTask
 from testrunner.api_client import ApiClient
 
 
 logger = get_task_logger(__name__)
 
 
-class HttpGet(celery_app.Task):
+class HttpGet(BaseTask):
     def _parse_content(self, response_content):
         pass
 
@@ -21,6 +21,9 @@ class HttpGet(celery_app.Task):
         return response.elapsed.microseconds
 
     def run(self, result_uri, url, retries=1, query_params=None, **params):
+        self.position = params.get('task_position', self.MIDDLE)
+        self.on_start(params['task_uri'])
+
         def run_test():
             logger.info('HTTP GET request: {} with params={}'.format(url, query_params))
             response = requests.get(url, params=query_params)
