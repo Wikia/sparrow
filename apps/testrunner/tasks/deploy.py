@@ -5,7 +5,7 @@ from contextlib import closing
 from django.conf import settings
 from celery.utils.log import get_task_logger
 
-from base_task import BaseTask
+from .base_task import BaseTask
 from testrunner.ssh import SSHConnection
 
 logger = get_task_logger(__name__)

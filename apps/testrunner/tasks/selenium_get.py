@@ -9,7 +9,7 @@ from pyvirtualdisplay.display import Display
 from selenium.webdriver import DesiredCapabilities
 from selenium import webdriver
 from common.utils import collect_results
-from base_task import BaseTask
+from .base_task import BaseTask
 from testrunner.test_suites.selenium_tests import selenium_tests
 from testrunner.test_suites.selenium_tests.selenium_timer import SeleniumTimer
 from common import media_wiki_tools

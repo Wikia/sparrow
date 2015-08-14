@@ -5,7 +5,7 @@ import re
 from celery.utils.log import get_task_logger
 
 from testrunner.api_client import ApiClient
-from base_task import BaseTask
+from .base_task import BaseTask
 
 
 logger = get_task_logger(__name__)

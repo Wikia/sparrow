@@ -6,7 +6,7 @@ import requests
 from celery.utils.log import get_task_logger
 
 from metrics import Collection
-from base_task import BaseTask
+from .base_task import BaseTask
 from testrunner.metric_generators import PhantomasMetricGenerator, ProfilerMetricGenerator, RequestsMetricGenerator, \
     SeleniumMetricGenerator
 from testrunner.api_client import ApiClient

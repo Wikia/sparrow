@@ -6,7 +6,7 @@ from celery.utils.log import get_task_logger
 import requests
 from common.utils import collect_results
 
-from base_task import BaseTask
+from .base_task import BaseTask
 from testrunner.api_client import ApiClient
 
 
