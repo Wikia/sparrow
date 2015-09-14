@@ -17,10 +17,17 @@ class Deploy(celery_app.Task):
 
     def run(self, deploy_host, app, env, repos):
         with closing(SSHConnection(deploy_host)) as connection:
+            self.run_sync(connection, repos)
             self.run_prep(connection, app, env, repos)
             self.run_push(connection, app, env)
         with closing(SSHConnection(env)) as connection:
             self.clean_up_old_releases(env, connection)
+
+    @classmethod
+    def run_sync(cls, connection, repos):
+        for repo_name, repo_commit in repos.items():
+            cmd = 'dt --boring git-sync -r {repo_name}'.format(repo_name=repo_name)
+            cls.run_remote_command(connection, cmd)
 
     @classmethod
     def run_prep(cls, connection, app, env, repos):
