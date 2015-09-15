@@ -62,7 +62,7 @@ class CompareResultSet(dict):
                 a=res.markers[0],
                 b=res.markers[1]
             ))
-        s.append('**SCORE** | | | | **{:+}**'.format(self.get_total_score()))
+        # s.append('**SCORE** | | | | **{:+}**'.format(self.get_total_score()))
         return "\n".join(s)
 
 

@@ -9,10 +9,10 @@ class StableMetricSet(object):
         url = self.find_url()
 
         # database
-        self.master_queries_count = self.get_stats(
-            id='server.app.database.queries.master_count',
-            origin='mw_profiler'
-        )
+        # self.master_queries_count = self.get_stats(
+        #     id='server.app.database.queries.master_count',
+        #     origin='mw_profiler'
+        # )
         self.slave_queries_count = self.get_stats(
             id='server.app.database.queries.slave_count',
             origin='mw_profiler'
@@ -48,12 +48,12 @@ class StableMetricSet(object):
             id='browser.dom.event.complete',
             origin='phantomas'
         )
-        self.dom_complete_selenium = self.get_stats(
-            id='browser.dom.event.complete',
-            origin='selenium',
-            mode='default',
-            url=url,
-        )
+        # self.dom_complete_selenium = self.get_stats(
+        #     id='browser.dom.event.complete',
+        #     origin='selenium',
+        #     mode='default',
+        #     url=url,
+        # )
 
         # DOM operations
         self.dom_inserts = self.get_stats(
