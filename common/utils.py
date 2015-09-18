@@ -33,7 +33,7 @@ def camel2snake(text):
     return "".join(result)
 
 
-def collect_results(func, count, error_limit=3):
+def collect_results(func, count, warmup_count=3, error_limit=3):
     results = []
     consecutive_errors = 0
     while len(results) < count:
@@ -42,7 +42,10 @@ def collect_results(func, count, error_limit=3):
             if not result:
                 raise ValueError('Result evaluates to false: {}'.format(result))
             consecutive_errors = 0
-            results.append(result)
+            if warmup_count > 0:
+                warmup_count -= 1
+            else:
+                results.append(result)
         except:
             consecutive_errors += 1
             if consecutive_errors >= error_limit:
