@@ -3,7 +3,8 @@
             apiUrl: '/api/v1/'
         },
         Api = {},
-        CompareRequest, TestRun, Result, Task;
+        CompareRequest, TestRun, Result, Task,
+        allClasses;
 
     function Object_values(o) {
         return Object.keys(o).map(function (k) {
@@ -149,7 +150,7 @@
     };
 
 
-    var allClassess = [CompareRequest, TestRun, Result, Task];
+    allClassess = [CompareRequest, TestRun, Result, Task];
     allClassess.forEach(function (cls) {
         cls.get = getEntityBuilder(cls);
         cls.list = getPagedListBuilder(cls);
