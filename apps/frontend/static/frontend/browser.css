@@ -1,0 +1,34 @@
+.cmp-table {
+    font-family: Menlo, Consolas, "Andale Mono", "Lucida Console", monospace;
+    font-size: 12px;
+    border-collapse: collapse;;
+}
+.cmp-table tr, .cmp-table th, .cmp-table td {
+    margin: 0;
+    padding: 2px;
+}
+.cmp-table tr:nth-child(2n+1) {
+    background-color: #fafafa;
+}
+.cmp-header {
+    background-color: #d8d8d8;
+}
+.cmp-header-1 {
+    font-weight: bold;
+}
+.cmp-value-number, .cmp-diff {
+    text-align: right;
+}
+.cmp-raw-values {
+    color: #999999;
+}
+.cmp-table td.cmp-diff {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.cmp-diff-minus {
+    color: green;
+}
+.cmp-diff-plus {
+    color: red;
+}

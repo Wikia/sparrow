@@ -132,6 +132,8 @@ INSTALLED_APPS = (
     'testrunner',
     'metrics',
     'compare_requests',
+
+    'frontend',
 )
 
 # Django REST Framework Settings
