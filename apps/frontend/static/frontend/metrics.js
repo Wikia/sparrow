@@ -39,13 +39,13 @@
                 context: ctx,
                 info: e.info,
                 values: values.items,
-                stats: values.stats()
+                stats: values.stats(),
+                statsMargin1: values.stats(1),
+                statsMargin2: values.stats(2)
             };
 
             o.push(item);
         });
-
-        this.__cachePlain = res;
 
         return res;
     };
@@ -221,7 +221,8 @@
         return this.__sorted;
     };
 
-    ValueList.prototype.stats = function() {
+    ValueList.prototype.stats = function(margin) {
+        margin = margin || 0;
         if (!isNumericType(this.type)) {
             return {
                 count: this.items.length,
@@ -232,7 +233,9 @@
             }
         }
         var sorted = this.sorted(),
-            sum = 0, cnt = sorted.length;
+            sum = 0, cnt;
+        sorted = sorted.slice(margin, sorted.length - margin);
+        cnt = sorted.length;
         sorted.forEach(function (v) {
             sum += v.raw_value;
         });

@@ -32,3 +32,7 @@
 .cmp-diff-plus {
     color: red;
 }
+.cmp-diff-secondary {
+    opacity: 0.8;
+    font-size: 90%;
+}

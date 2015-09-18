@@ -94,6 +94,18 @@ window.Sparrow.Api.CompareRequest.get(29);
                 expanded: false
             };
         },
+        getPercentageDiffText: function(stats1, stats2, extraCls) {
+            var scaledDiff = stats1.mean.scaledDiffTo(stats2.mean),
+                diffCls = (scaledDiff > 0 ? 'cmp-diff-plus' : (scaledDiff < 0 ? 'cmp-diff-minus' : ''))
+                    + (extraCls ? ' ' + extraCls : ''),
+                perc;
+            if (isNaN(scaledDiff)) {
+                return <span className={diffCls} />;
+            }
+            perc = scaledDiff * 100;
+            perc = Math.round(perc * 100) / 100;
+            return <span className={diffCls}>{(perc > 0 ? '+' : '') + perc + '%'}</span>;
+        },
         renderCell: function(result, baseResult) {
             if (!result || !result.length) {
                 return <td></td>;
@@ -125,16 +137,11 @@ window.Sparrow.Api.CompareRequest.get(29);
             }
             if (baseResult[0] != result) {
                 baseResult = baseResult[0];
-                var scaledDiff = baseResult.stats.mean.scaledDiffTo(result.stats.mean),
-                    diffCls = 'cmp-diff ' + (scaledDiff > 0 ? 'cmp-diff-plus' : (scaledDiff < 0 ? 'cmp-diff-minus' : '')),
-                    perc;
-                if (isNaN(scaledDiff)) {
-                    res.push(<td className={diffCls}></td>);
-                } else {
-                    perc = scaledDiff * 100;
-                    perc = Math.round(perc * 100) / 100;
-                    res.push(<td className={diffCls}>{(perc > 0 ? '+' : '') + perc + '%'}</td>);
-                }
+                res.push(<td className="cmp-diff">
+                    {this.getPercentageDiffText(baseResult.stats, result.stats)}
+                    <br />
+                    {this.getPercentageDiffText(baseResult.statsMargin2, result.statsMargin2, 'cmp-diff-secondary')}
+                    </td>);
             }
             res.push(<td className={cls} title={tooltip}>{text}</td>);
             return res;
