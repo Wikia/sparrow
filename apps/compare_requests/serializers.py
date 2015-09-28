@@ -16,4 +16,4 @@ class CompareRequestSerializer(serializers.HyperlinkedModelSerializer):
 class CreateCompareRequestSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = CompareRequest
-        fields = ('repo', 'pull_request_num')
+        fields = ('repo', 'pull_request_num', 'silent')
