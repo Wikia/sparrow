@@ -1,5 +1,5 @@
 (function (window) {
-    var STORAGE_KEY_SERVER =  'server';
+    var STORAGE_KEY_SERVER = 'server';
     var View = window.Sparrow.View,
         Api = window.Sparrow.Api,
         Metrics = window.Sparrow.Metrics,
@@ -13,7 +13,7 @@
         },
         storage = window.localStorage;
 
-    (function() {
+    (function () {
         var saved = storage.getItem(STORAGE_KEY_SERVER);
         if (typeof saved == 'string') {
             Data.serverName = saved;
@@ -23,7 +23,7 @@
 
     Actions.init = function () {
         startLoading();
-        Api.CompareRequest.list().allAtOnce(function (l) {
+        Api.CompareRequest.list(100).allAtOnce(function (l) {
             Data.compareRequests = l;
             stopLoading();
             Actions.render();
@@ -34,6 +34,7 @@
         Data.loading++;
         View.setLoading(Data.loading);
     }
+
     function stopLoading() {
         Data.loading--;
         View.setLoading(Data.loading);
@@ -71,7 +72,7 @@
                             var results = Array.prototype.slice.call(arguments, 0);
                             Data.testResultsError = false;
                             Data.testResults = new Metrics.CollectionComparison(
-                                results.map(function(result,i){
+                                results.map(function (result, i) {
                                     return new Metrics.Collection(result, testRuns[i]);
                                 })
                             );
@@ -84,7 +85,7 @@
         }
     };
 
-    Actions.setServerName = function(server) {
+    Actions.setServerName = function (server) {
         if (Data.serverName == server) {
             return;
         }
