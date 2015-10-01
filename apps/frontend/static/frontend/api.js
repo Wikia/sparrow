@@ -33,6 +33,12 @@
         return deferred.promise();
     };
 
+    Api.setServer = function(server) {
+        var url = server ? ('http://' + server) : '';
+        url += '/api/v1/';
+        Config.apiUrl = url;
+    };
+
     function getEntity(cls, id) {
         var url = (typeof id == 'string' && id.substr(0, 4) == 'http') ? id
             : Config.apiUrl + cls.API_NAME + '/' + id + '/';

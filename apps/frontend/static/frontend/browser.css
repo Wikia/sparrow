@@ -48,3 +48,6 @@
     background-position: right 4px top 3px;
     padding: 2px 24px 2px 2px;
 }
+.request-select {
+    display: inline-block;
+}

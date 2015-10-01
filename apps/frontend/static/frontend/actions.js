@@ -1,14 +1,25 @@
 (function (window) {
+    var STORAGE_KEY_SERVER =  'server';
     var View = window.Sparrow.View,
         Api = window.Sparrow.Api,
         Metrics = window.Sparrow.Metrics,
         Actions = {},
         Data = {
+            serverName: '',
             loading: 0,
             compareRequests: [],
             testResultsError: false,
             testResults: []
-        };
+        },
+        storage = window.localStorage;
+
+    (function() {
+        var saved = storage.getItem(STORAGE_KEY_SERVER);
+        if (typeof saved == 'string') {
+            Data.serverName = saved;
+        }
+    })();
+    Api.setServer(Data.serverName);
 
     Actions.init = function () {
         startLoading();
@@ -71,6 +82,16 @@
                 })
                 .fail(stopLoading);
         }
+    };
+
+    Actions.setServerName = function(server) {
+        if (Data.serverName == server) {
+            return;
+        }
+        Data.serverName = server;
+        Api.setServer(server);
+        storage.setItem(STORAGE_KEY_SERVER, server);
+        Actions.init();
     };
 
     Actions.render = function () {

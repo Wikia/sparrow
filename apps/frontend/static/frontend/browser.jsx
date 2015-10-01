@@ -8,7 +8,11 @@ window.Sparrow.Api.CompareRequest.get(29);
         render: function() {
             var data = this.props.data;
             return <div>
-                    <CompareRequestSelect compareRequests={data.compareRequests} />
+                    <div>
+                        <CompareRequestSelect compareRequests={data.compareRequests} />
+                        @
+                        <ServerSelect serverName={data.serverName}/>
+                    </div>
                     <ResultComparison errorText={data.testResultsError} results={data.testResults} />
                     <LoadingIndicator loading={data.loading}/>
                 </div>;
@@ -172,7 +176,7 @@ window.Sparrow.Api.CompareRequest.get(29);
                 var text = c.repo + '#' + c.pull_request_num + ' ' + c.head_ref + ' (' + c.head_sha + ') [' + c.id + ']';
                 return <option key={c.id} value={c.id}>{text}</option>;
             });
-            return <div>
+            return <div className="request-select">
                     <select onChange={this.onChange}>
                         {options}
                     </select>
@@ -181,7 +185,25 @@ window.Sparrow.Api.CompareRequest.get(29);
 
         onChange: function(ev) {
             Actions.selectCompareRequest($(ev.target).val());
-            console.log('onchange', $.extend({},arguments[0]));
+            console.log('request-select onchange', $.extend({},arguments[0]));
+        }
+    });
+
+    var ServerSelect = React.createClass({
+        render: function() {
+            return <input type="text" defaultValue={this.props.serverName} onKeyDown={this.onKeyDown} onBlur={this.onBlur} />
+        },
+
+        onKeyDown: function(ev) {
+            if (ev.keyCode == 13 && !ev.shiftKey && !ev.ctrlKey && !ev.altKey) {
+                Actions.setServerName($(ev.target).val());
+                console.log('server-select onkeydown', $.extend({},arguments[0]));
+            }
+        },
+
+        onBlur: function(ev) {
+            Actions.setServerName($(ev.target).val());
+            console.log('server-select onblur', $.extend({},arguments[0]));
         }
     });
 
