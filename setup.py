@@ -26,6 +26,7 @@ setup(
         'django-debug-toolbar==1.3.0',
         'django-extensions==1.5.5',
         'django-jenkins==0.17.0',
+        'django-cors-headers==1.1.0',
         'selenium==2.45.0',
         'PyGithub==1.25.2',
         'PyVirtualDisplay==0.1.5',
