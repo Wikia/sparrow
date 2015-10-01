@@ -4,17 +4,29 @@
         Metrics = window.Sparrow.Metrics,
         Actions = {},
         Data = {
+            loading: 0,
             compareRequests: [],
             testResultsError: false,
             testResults: []
         };
 
     Actions.init = function () {
+        startLoading();
         Api.CompareRequest.list().allAtOnce(function (l) {
             Data.compareRequests = l;
+            stopLoading();
             Actions.render();
         })
     };
+
+    function startLoading() {
+        Data.loading++;
+        View.setLoading(Data.loading);
+    }
+    function stopLoading() {
+        Data.loading--;
+        View.setLoading(Data.loading);
+    }
 
     Actions.selectCompareRequest = function (id) {
         var compareRequest = false, i;
@@ -26,6 +38,7 @@
         compareRequest = Data.compareRequests[i];
 
         if (compareRequest) {
+            startLoading();
             $.when(compareRequest.base_test_run(), compareRequest.head_test_run())
                 .done(function (base_test_run, head_test_run) {
                     var q = [base_test_run, head_test_run],
@@ -51,12 +64,14 @@
                                     return new Metrics.Collection(result, testRuns[i]);
                                 })
                             );
+                            stopLoading();
                             Actions.render();
-                        });
-                });
+                        })
+                        .fail(stopLoading);
+                })
+                .fail(stopLoading);
         }
     };
-
 
     Actions.render = function () {
         View.render(Data);

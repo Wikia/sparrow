@@ -10,6 +10,7 @@ window.Sparrow.Api.CompareRequest.get(29);
             return <div>
                     <CompareRequestSelect compareRequests={data.compareRequests} />
                     <ResultComparison errorText={data.testResultsError} results={data.testResults} />
+                    <LoadingIndicator loading={data.loading}/>
                 </div>;
         }
     });
@@ -184,12 +185,23 @@ window.Sparrow.Api.CompareRequest.get(29);
         }
     });
 
+    var LoadingIndicator = React.createClass({
+        render: function() {
+            console.log(this.props);
+            var cls = 'loading-indicator' + (this.props.loading ? ' active' : '');
+            return <div className={cls}>Loading...</div>
+        }
+    });
+
     $.extend(window.Sparrow.View, {
         render: function(Data) {
             React.render(
                 <Browser data={Data} />,
                 document.body
             );
+        },
+        setLoading: function(loading) {
+            $('.loading-indicator')[loading?'addClass':'removeClass']('active');
         }
     });
 

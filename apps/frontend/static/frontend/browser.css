@@ -36,3 +36,15 @@
     opacity: 0.8;
     font-size: 90%;
 }
+.loading-indicator {
+    position: fixed;
+    top: 0;
+    right: 0;
+    display: none;
+}
+.loading-indicator.active {
+    display: block;
+    background: yellow url("img/ajax-loader.gif") top right no-repeat;
+    background-position: right 4px top 3px;
+    padding: 2px 24px 2px 2px;
+}
