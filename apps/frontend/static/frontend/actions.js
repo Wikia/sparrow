@@ -10,7 +10,13 @@
         };
 
     Actions.init = function () {
-        Api.CompareRequest.list().allAtOnce(function (l) {
+        Actions.render();
+        setTimeout(Actions.loadCompareRequests, 0);
+    };
+
+    Actions.loadCompareRequests = function () {
+        startLoading();
+        Api.CompareRequest.list(100).allAtOnce(function (l) {
             Data.compareRequests = l;
             Actions.render();
         })
@@ -30,6 +36,19 @@
                 .done(function (base_test_run, head_test_run) {
                     var q = [base_test_run, head_test_run],
                         testRuns;
+                    if (q[0].status < 2 || q[1].status < 2) {
+                        var errorText = 'Ooops! Something went wrong!';
+                        if (q[0].status == -1 || q[1].status == -1) {
+                            errorText = 'One or more tests have failed.';
+                        } else if (q[0].status != 2 || q[1].statis != -2) {
+                            errorText = 'One or more tests have not yet finished.';
+                        }
+                        Data.testResultsError = errorText;
+                        stopLoading();
+                        Actions.render();
+                        return;
+                    }
+
                     q = q.filter(function (e) {
                         return e.results.length > 0;
                     });
@@ -37,6 +56,7 @@
                     q = q.map(function (e) {
                         return e.results[0]();
                     });
+
                     if (q.length == 0) {
                         Data.testResultsError = 'No results available for the selected comparison';
                         Actions.render();
@@ -57,6 +77,15 @@
         }
     };
 
+    Actions.setServerName = function (server) {
+        if (Data.serverName == server) {
+            return;
+        }
+        Data.serverName = server;
+        Api.setServer(server);
+        storage.setItem(STORAGE_KEY_SERVER, server);
+        Actions.loadCompareRequests();
+    };
 
     Actions.render = function () {
         View.render(Data);

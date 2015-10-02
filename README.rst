@@ -143,3 +143,18 @@ Django's ``manage.py`` script is located in the ``apps`` directory. Any
 set your ``PYTHONPATH``, you can omit the ``--settings=...`` portion of any
 ``manage.py`` commands, and substitute ``django-admin.py`` for ``manage.py``.
 
+
+Standalone UI development
+-------------------------
+
+Install node.js static http server:
+
+    sudo npm install http-server -g
+
+Start the standalone static http server:
+
+    cd apps/frontend/static
+    http-server
+
+Then open http://localhost:8080 in your web browser and enter the server address and press Enter.
+
