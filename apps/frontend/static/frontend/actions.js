@@ -1,13 +1,25 @@
 (function (window) {
+    var STORAGE_KEY_SERVER = 'server';
     var View = window.Sparrow.View,
         Api = window.Sparrow.Api,
         Metrics = window.Sparrow.Metrics,
         Actions = {},
         Data = {
+            serverName: '',
+            loading: 0,
             compareRequests: [],
             testResultsError: false,
             testResults: []
-        };
+        },
+        storage = window.localStorage;
+
+    (function () {
+        var saved = storage.getItem(STORAGE_KEY_SERVER);
+        if (typeof saved == 'string') {
+            Data.serverName = saved;
+        }
+    })();
+    Api.setServer(Data.serverName);
 
     Actions.init = function () {
         Actions.render();
@@ -18,9 +30,20 @@
         startLoading();
         Api.CompareRequest.list(100).allAtOnce(function (l) {
             Data.compareRequests = l;
+            stopLoading();
             Actions.render();
         })
     };
+
+    function startLoading() {
+        Data.loading++;
+        View.setLoading(Data.loading);
+    }
+
+    function stopLoading() {
+        Data.loading--;
+        View.setLoading(Data.loading);
+    }
 
     Actions.selectCompareRequest = function (id) {
         var compareRequest = false, i;
@@ -32,6 +55,7 @@
         compareRequest = Data.compareRequests[i];
 
         if (compareRequest) {
+            startLoading();
             $.when(compareRequest.base_test_run(), compareRequest.head_test_run())
                 .done(function (base_test_run, head_test_run) {
                     var q = [base_test_run, head_test_run],
@@ -67,13 +91,16 @@
                             var results = Array.prototype.slice.call(arguments, 0);
                             Data.testResultsError = false;
                             Data.testResults = new Metrics.CollectionComparison(
-                                results.map(function(result,i){
+                                results.map(function (result, i) {
                                     return new Metrics.Collection(result, testRuns[i]);
                                 })
                             );
+                            stopLoading();
                             Actions.render();
-                        });
-                });
+                        })
+                        .fail(stopLoading);
+                })
+                .fail(stopLoading);
         }
     };
 

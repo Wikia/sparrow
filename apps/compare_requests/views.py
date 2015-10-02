@@ -5,6 +5,7 @@ import ujson
 from github import GithubException
 
 from rest_framework import viewsets
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import status
 from common.utils import cached_property
@@ -26,9 +27,14 @@ COMPARE_URL = 'http://muppet.synth1.wikia-dev.com/wiki/Kermit?noexternals=1'
 logger = logging.getLogger(__name__)
 
 
+class CompareRequestPagination(PageNumberPagination):
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 class CompareRequestViewSet(viewsets.ModelViewSet):
     queryset = CompareRequest.objects.all()
     serializer_class = CompareRequestSerializer
+    pagination_class = CompareRequestPagination
 
     def create(self, request, *args, **kwargs):
         serializer = CreateCompareRequestSerializer(data=request.data, context=self.get_serializer_context())

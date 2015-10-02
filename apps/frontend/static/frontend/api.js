@@ -33,6 +33,12 @@
         return deferred.promise();
     };
 
+    Api.setServer = function (server) {
+        var url = server ? ('http://' + server) : '';
+        url += '/api/v1/';
+        Config.apiUrl = url;
+    };
+
     function getEntity(cls, id) {
         var url = (typeof id == 'string' && id.substr(0, 4) == 'http') ? id
             : Config.apiUrl + cls.API_NAME + '/' + id + '/';
@@ -66,9 +72,12 @@
 
     var PagedList;
 
-    PagedList = function (cls) {
+    PagedList = function (cls, pageSize) {
         this.childCls = cls;
         this.nextUrl = Config.apiUrl + cls.API_NAME + '/';
+        if (pageSize) {
+            this.nextUrl += '?page_size=' + pageSize;
+        }
         this.currentPage = [];
         this.currentIndex = 0;
 
@@ -124,8 +133,8 @@
     };
 
     function getPagedListBuilder(cls) {
-        return function () {
-            return new PagedList(cls);
+        return function (pageSize) {
+            return new PagedList(cls, pageSize);
         }
     }
 
