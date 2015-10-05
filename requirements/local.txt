@@ -35,3 +35,6 @@ flake8==2.4.1
 
 # Selenium Tests
 selenium==2.46.1
+
+# CORS headers
+django-cors-headers==1.1.0

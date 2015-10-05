@@ -79,6 +79,7 @@ STATICFILES_DIRS = ()
 SECRET_KEY = get_env_var('SPARROW_SECRET_KEY')
 
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -123,6 +124,7 @@ INSTALLED_APPS = (
 
     # Third party apps
     'rest_framework',
+    'corsheaders',
 
     # local apps
     'rest_framework_swagger',
@@ -132,6 +134,8 @@ INSTALLED_APPS = (
     'testrunner',
     'metrics',
     'compare_requests',
+
+    'frontend',
 )
 
 # Django REST Framework Settings
@@ -150,6 +154,10 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'redis'
 CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+
+# CORS headers
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_METHODS = ('GET',)
 
 # AUTH_USER_MODEL = 'path.to.UserModel'
 

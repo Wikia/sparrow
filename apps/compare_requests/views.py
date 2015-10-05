@@ -5,6 +5,7 @@ import ujson
 from github import GithubException
 
 from rest_framework import viewsets
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import status
 from common.utils import cached_property
@@ -26,9 +27,14 @@ COMPARE_URL = 'http://muppet.synth1.wikia-dev.com/wiki/Kermit?noexternals=1'
 logger = logging.getLogger(__name__)
 
 
+class CompareRequestPagination(PageNumberPagination):
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 class CompareRequestViewSet(viewsets.ModelViewSet):
     queryset = CompareRequest.objects.all()
     serializer_class = CompareRequestSerializer
+    pagination_class = CompareRequestPagination
 
     def create(self, request, *args, **kwargs):
         serializer = CreateCompareRequestSerializer(data=request.data, context=self.get_serializer_context())
@@ -36,9 +42,10 @@ class CompareRequestViewSet(viewsets.ModelViewSet):
 
         repo_name = serializer.data['repo']
         pull_req_num = serializer.data['pull_request_num']
+        silent = serializer.data['silent']
 
         github = GitHub()
-        create_compare_request = CreateCompareRequest(github, repo_name, pull_req_num)
+        create_compare_request = CreateCompareRequest(github, repo_name, pull_req_num, silent)
 
         try:
             create_compare_request.execute()
@@ -55,9 +62,10 @@ class CompareRequestViewSet(viewsets.ModelViewSet):
 
 
 class CreateCompareRequest(object):
-    def __init__(self, github, repo_name, pull_req_num):
+    def __init__(self, github, repo_name, pull_req_num, silent):
         self.repo_name = repo_name
         self.pull_req_num = pull_req_num
+        self.silent = silent
         self.github = github
 
         self.status = False
@@ -83,6 +91,7 @@ class CreateCompareRequest(object):
         compare_request = CompareRequest()
         compare_request.repo = self.repo_name
         compare_request.pull_request_num = self.pull_req_num
+        compare_request.silent = self.silent
 
         compare_request.head_ref = self.app_branch_info[REF]
         compare_request.head_sha = self.app_branch_info[SHA]
