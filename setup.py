@@ -1,4 +1,20 @@
+import os.path
 from distutils.core import setup
+
+def get_dependencies(file_name=None):
+    if file_name is None:
+        file_name = os.path.join(os.path.dirname(__file__),'requirements.txt')
+
+    out = []
+    with open(file_name, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line[0:2] == '-r':
+                out += get_dependencies(os.path.join(os.path.dirname(file_name), line[3:]))
+            elif line[0:1] != '#':
+                out.append(line)
+    return out
+
 
 setup(
     name='sparrow',
@@ -6,29 +22,5 @@ setup(
     package_data={'sparrow': ['*'], },
     author='Wikia',
     description='Performance monitoring tool',
-    install_requires=[
-        'six==1.9.0',
-        'django==1.8.2',
-        'djangorestframework==3.1.2',
-        'Unipath==1.1',
-        'dj-database-url==0.3.0',
-        'psycopg2==2.6',
-        'django-enumfield==1.2.1',
-        'drf_ujson==1.2',
-        'django-rest-swagger==0.3.0',
-        'celery[redis]==3.1.18',
-        'jsonfield==1.0.3',
-        'paramiko==1.15.2',
-        'requests==2.7.0',
-        'colorlog==2.6.0',
-        'numpy==1.9.2',
-        'phantomas==0.2.2',
-        'django-debug-toolbar==1.3.0',
-        'django-extensions==1.5.5',
-        'django-jenkins==0.17.0',
-        'django-cors-headers==1.1.0',
-        'selenium==2.45.0',
-        'PyGithub==1.25.2',
-        'PyVirtualDisplay==0.1.5',
-    ],
+    install_requires=get_dependencies()
 )
