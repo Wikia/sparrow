@@ -3,18 +3,18 @@ from __future__ import unicode_literals
 
 import numpy
 import requests
-import ujson
 from celery.utils.log import get_task_logger
-from metrics import Collection
 
-from testrunner import app as celery_app
+from metrics import Collection
+from .base_task import BaseTask
 from testrunner.metric_generators import PhantomasMetricGenerator, ProfilerMetricGenerator, RequestsMetricGenerator, \
     SeleniumMetricGenerator
+from testrunner.api_client import ApiClient
 
 logger = get_task_logger(__name__)
 
 
-class ProcessResponses(celery_app.Task):
+class ProcessResponses(BaseTask):
     @staticmethod
     def _calculate_stats(values):
         if len(values) == 0:
@@ -44,28 +44,11 @@ class ProcessResponses(celery_app.Task):
             'highest': float(numpy.max(values)),
         }
 
-    @staticmethod
-    def post_results(uri, test_run_uri, task_uri, results):
-        logger.info('Saving results')
-        payload = {
-            'results': results,
-            'task': task_uri,
-            'test_run': test_run_uri,
-        }
-
-        response = requests.post(
-            uri,
-            data=ujson.dumps(payload),
-            headers={
-                'Content-type': 'application/json',
-                'Accept': 'application/json',
-            }
-        )
-        logger.debug('Response (code: {0}): {1}'.format(response.status_code, response.content))
-        response.raise_for_status()
-
-    def run(self, data, test_run_uri, task_uri, result_uri):
+    def run(self, result_uri, raw_result_uri, test_run_uri, task_uri, results_uri, **params):
         logger.info('Starting processing results...')
+
+        self.position = params.get('task_position', self.MIDDLE)
+        self.on_start(task_uri)
 
         generators = {
             'phantomas': [
@@ -83,12 +66,17 @@ class ProcessResponses(celery_app.Task):
         }
 
         metrics = Collection()
-        for item in data:
-            for generator in generators[item['generator']]:
-                generator(metrics, item)
+        result = ApiClient.get(result_uri)
 
-        results = metrics.serialize()
+        for raw_result_uri in result['raw_results']:
+            raw_result = ApiClient.get(raw_result_uri)
 
-        self.post_results(result_uri, test_run_uri, task_uri, results)
+            for item in raw_result['data']:
+                for generator in generators[raw_result['generator']]:
+                    generator(metrics, raw_result)
 
-        return results
+        ApiClient.put(result_uri, {
+            'test_run': test_run_uri,
+            'task': task_uri,
+            'results': metrics.serialize(),
+        })

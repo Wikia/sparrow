@@ -17,20 +17,12 @@ from metrics.values import Stats
 
 from tasks.models import TaskStatus
 from tests.mocks.ssh import SSHConnectionMock, SSHConnectionMockBuilder
-from tests.mocks.requests import post_response
+from tests.mocks.requests import post_response, get_response, put_response, patch_response
 from tests.mocks.phantomas import PhantomasMock
 from tests.mocks.chrome import ChromeMock
 
-
-CURRENT_TIME_MOCK = 1401041000
-
 def time_time_mock(*args, **kwargs):
-    global CURRENT_TIME_MOCK
-    CURRENT_TIME_MOCK += 2
-    return CURRENT_TIME_MOCK
-
-def noop(*args, **kwargs):
-    pass
+    return 2
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True)
@@ -40,7 +32,7 @@ class TestResultTestCase(APITestCase):
         self.test_run = mommy.make('test_runs.TestRun')
         self.task_to_delete = mommy.make('tasks.Task')
         self.result = mommy.make('results.TestResult')
-        self.response_data = {}
+        self.response_data = []
         self.mw_content = """
             <html>
             Some stuff here
@@ -84,29 +76,30 @@ class TestResultTestCase(APITestCase):
     @mock.patch('testrunner.tasks.phantomas_get.phantomas.Phantomas', PhantomasMock)
     @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
     @mock.patch('selenium.webdriver.support.wait.WebDriverWait', mock.MagicMock())
-    @mock.patch('testrunner.test_suites.simple.SimpleTestSuiteTask.forget_result', noop)
-    @mock.patch('testrunner.tasks.http_get.HttpGet.get_current_time',time_time_mock)
+    @mock.patch('testrunner.tasks.http_get.HttpGet._elapsed_time', time_time_mock)
     @responses.activate
     @post_response
-    def test_run_task(self, post_callback):
+    @get_response
+    @put_response
+    def test_run_task(self, post_callback, get_callback, put_callback):
         def extract_values_from_results(origin, id):
             series = [x for x in results
                       if x['context']['id'] == id
                       if x['context']['origin'] == origin]
-            self.assertEqual(len(series), 1, '{}:{} gave {} value series (1 expected)'.format(origin, id, len(series)))
+            self.assertEqual(len(series), 10, '{}:{} gave {} value series (10 expected)'.format(origin, id, len(series)))
             return [x['value'] for x in series[0]['values']]
 
         def get_stats_from_requests(id, origin):
             values = extract_values_from_results(id, origin)
             return Stats(values)
 
+        # TODO: Fix this to use better mocking mechanism
         patch_calls = []
         def patch_callback(request):
             api_response = self.client.patch(request.url, data=ujson.decode(request.body), headers=request.headers)
             patch_calls.append(api_response.data)
 
             return api_response.status_code, {}, api_response.content
-
 
         url = reverse('task-run', args=[self.task_to_delete.id, ])
         api_uri = re.compile(r'https?://testserver')
@@ -123,13 +116,31 @@ class TestResultTestCase(APITestCase):
         # mocking API results calls
         responses.add_callback(responses.POST, api_uri, callback=post_callback,
                                content_type='application/json')
+        responses.add_callback(responses.PUT, api_uri, callback=put_callback,
+                               content_type='application/json')
+        responses.add_callback(responses.GET, api_uri, callback=get_callback,
+                               content_type='application/json')
 
         response = self.client.post(url)
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED,
-                         msg='Run task failed: {0}'.format(response.data))
+                         msg='Run task failed: {0}'.format(response.content))
 
-        results = self.response_data['results']
+        # fetching data for a task
+        url = reverse('task-detail', args=[self.task_to_delete.id, ])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK,
+                         msg='Get task failed: {0}'.format(response.content))
+
+        # now get result
+        url = response.data['results'][0]
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK,
+                         msg='Get result failed: {0}'.format(response.content))
+
+        results = response.data['results']
 
         response_times = get_stats_from_requests('requests', 'server.app.response_time')
         self.assertEqual(response_times.count, 10)
@@ -164,12 +175,12 @@ class TestResultTestCase(APITestCase):
         self.assertEqual(html_size.max, 124541.0)
         self.assertEqual(other_count.max, 19.0)
 
-        # status update
-        self.assertEqual(len(patch_calls), 2)
+        # status update (7 * IN_PROGRESS + 1 * DONE)
+        self.assertEqual(len(patch_calls), 8)
         # starting -> IN PROGRESS
         self.assertEqual(patch_calls[0]['status'], TaskStatus.IN_PROGRESS)
         # finished -> DONE
-        self.assertEqual(patch_calls[1]['status'], TaskStatus.DONE)
+        self.assertEqual(patch_calls[-1]['status'], TaskStatus.DONE)
 
 
     def test_update_result(self):

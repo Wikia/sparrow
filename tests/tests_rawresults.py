@@ -18,6 +18,8 @@ class TestRawResultTestCase(APITestCase):
 
         payload = {
             'result': reverse('testresult-detail', args=[self.results.id, ]),
+            'generator': 'tests',
+            'context': {'url': 'tests', },
         }
 
         response = self.client.post(url, payload)

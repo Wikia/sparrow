@@ -2,26 +2,33 @@
 from __future__ import unicode_literals
 from contextlib import closing
 
+from django.conf import settings
 from celery.utils.log import get_task_logger
 
-from testrunner import app as celery_app
+from .base_task import BaseTask
 from testrunner.ssh import SSHConnection
 
 logger = get_task_logger(__name__)
 
 
-class Deploy(celery_app.Task):
+class Deploy(BaseTask):
     PACKAGE_DIR = '/data/deploytools/packages/wikia/'
     PACKAGE_EXT = '.tar.gz'
     DEPLOY_DIR = '/usr/wikia/source/deploytools/'
 
-    def run(self, deploy_host, app, env, repos):
+    def run(self, deploy_host, app, env, repos, **params):
+        self.position = params.get('task_position', self.MIDDLE)
+        self.on_start(params['task_uri'])
+
         with closing(SSHConnection(deploy_host)) as connection:
             self.run_sync(connection, repos)
             self.run_prep(connection, app, env, repos)
             self.run_push(connection, app, env)
-        with closing(SSHConnection(env)) as connection:
-            self.clean_up_old_releases(env, connection)
+
+        # on dev environment don't try to clean up the releases
+        if not settings.DEBUG:
+            with closing(SSHConnection(env)) as connection:
+                self.clean_up_old_releases(env, connection)
 
     @classmethod
     def run_sync(cls, connection, repos):

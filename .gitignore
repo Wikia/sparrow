@@ -61,3 +61,4 @@ target/
 
 # node.js moduls
 node_modules/
+.bin

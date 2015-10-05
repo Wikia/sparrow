@@ -65,7 +65,8 @@ class Task(models.Model):
             self.__original_status = self.status
 
     def run(self):
-        result_uri=build_absolute_uri(reverse('testresult-list'))
+        results_uri=build_absolute_uri(reverse('testresult-list'))
+        raw_result_uri=build_absolute_uri(reverse('testrawresult-list'))
         task_uri=build_absolute_uri(reverse('task-detail', args=[self.id, ]))
         test_run_uri=build_absolute_uri(reverse('testrun-detail', args=[self.test_run_id, ]))
 
@@ -77,7 +78,8 @@ class Task(models.Model):
             url=test_run.test_run_uri,
             app_commit=test_run.app_commit,
             config_commit=test_run.config_commit,
-            result_uri=result_uri,
+            results_uri=results_uri,
+            raw_result_uri=raw_result_uri,
             task_uri=task_uri,
             test_run_uri=test_run_uri
         )
