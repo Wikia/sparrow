@@ -41,7 +41,7 @@ class ObjectCache(object):
         except:
             data = None
         if data is None:
-            data = retrieve_fn(*args, **kwargs)
+            data = retrieve_fn(*(args or tuple()), **(kwargs or {}))
             self.write(name, data)
         return data
 
