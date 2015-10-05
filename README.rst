@@ -83,6 +83,12 @@ Here is a list of the required environment variables:
 
 * SPARROW_RUNNER_PHANTOMAS
 
+* SPARROW_RUNNER_CHROMEDRIVER
+
+* SPARROW_GITHUB_TOKEN
+
+* SPARROW_API_SERVER_URL
+
 * SPARROW_GITHUB_TOKEN
 
 The following environment variables are required for Celery (pre-configured for Redis):
@@ -99,14 +105,17 @@ Set the contents as follows::
     #!/bin/bash
     # This hook is run after this virtualenv is activated.
 
+    export PYTHONPATH="/path/to/sparrow";
+    export DJANGO_SETTINGS_MODULE="sparrow.settings.local";
     export SPARROW_DATABASE_URL="postgresql://username:password@hostname:port/database";
     export SPARROW_SECRET_KEY="";
-    export DJANGO_SETTINGS_MODULE="sparrow.settings.local";
-    export PYTHONPATH="/path/to/sparrow";
     export SPARROW_CELERY_BROKER_URL="redis://localhost:6379/0";
     export SPARROW_RUNNER_DEPLOY_HOST="dev-synth1";
     export SPARROW_RUNNER_TARGET_HOST="dev-synth1";
     export SPARROW_RUNNER_PHANTOMAS="/path/to/phantomas";
+    export SPARROW_RUNNER_CHROMEDRIVER="/path/to/chromedriver";
+    export SPARROW_API_SERVER_URL="http://somehost";
+    export SPARROW_GITHUBTOKEN="YOUR_GITHUB_TOKEN";
 
 Set ``SPARROW_RUNNER_PHANTOMAS`` to a path where you have installed phantomas. If you have
 it installed globally just set it to ``phantomas`` if not you can run ``npm install`` and set the path
@@ -133,4 +142,19 @@ Django's ``manage.py`` script is located in the ``apps`` directory. Any
 **NOTE:** If you've set the ``DJANGO_SETTINGS_MODULE`` environment variable, and
 set your ``PYTHONPATH``, you can omit the ``--settings=...`` portion of any
 ``manage.py`` commands, and substitute ``django-admin.py`` for ``manage.py``.
+
+
+Standalone UI development
+-------------------------
+
+Install node.js static http server:
+
+    sudo npm install http-server -g
+
+Start the standalone static http server:
+
+    cd apps/frontend/static
+    http-server
+
+Then open http://localhost:8080 in your web browser and enter the server address and press Enter.
 

@@ -30,6 +30,11 @@ class TestRunStatus(enum.Enum):
 
 class TestRun(models.Model):
     id = models.AutoField(primary_key=True)
+    name = models.CharField(
+        max_length=250,
+        null=True,
+        blank=True
+    )
     test_run_uri = models.URLField()
     main_revision = models.CharField(
         max_length=40,
@@ -59,6 +64,11 @@ class TestRun(models.Model):
                 test_run=self,
                 status=TaskStatus.PENDING
             ).save()
+
+    def save_and_run(self, *args, **kwargs):
+        self.save(*args, **kwargs)
+        for task in self.tasks.filter(job_id=None):
+            task.run()
 
     @property
     def app_commit(self):

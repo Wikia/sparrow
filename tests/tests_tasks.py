@@ -7,26 +7,32 @@ import mock
 import responses
 import re
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
+import ujson
 from metrics.values import Stats
 
 from tasks.models import TaskStatus
 from tests.mocks.ssh import SSHConnectionMock, SSHConnectionMockBuilder
-from tests.mocks.requests import post_response
+from tests.mocks.requests import post_response, get_response, put_response, patch_response
 from tests.mocks.phantomas import PhantomasMock
 from tests.mocks.chrome import ChromeMock
 
+def time_time_mock(*args, **kwargs):
+    return 2
+
 
 @override_settings(CELERY_ALWAYS_EAGER=True)
+@override_settings(API_SERVER_URL='http://testserver')
 class TestResultTestCase(APITestCase):
     def setUp(self):
         self.test_run = mommy.make('test_runs.TestRun')
         self.task_to_delete = mommy.make('tasks.Task')
         self.result = mommy.make('results.TestResult')
-        self.response_data = {}
+        self.response_data = []
         self.mw_content = """
             <html>
             Some stuff here
@@ -70,19 +76,31 @@ class TestResultTestCase(APITestCase):
     @mock.patch('testrunner.tasks.phantomas_get.phantomas.Phantomas', PhantomasMock)
     @mock.patch('testrunner.tasks.selenium_get.webdriver.Chrome', ChromeMock.create)
     @mock.patch('selenium.webdriver.support.wait.WebDriverWait', mock.MagicMock())
+    @mock.patch('testrunner.tasks.http_get.HttpGet._elapsed_time', time_time_mock)
     @responses.activate
     @post_response
-    def test_run_task(self, post_callback):
+    @get_response
+    @put_response
+    def test_run_task(self, post_callback, get_callback, put_callback):
         def extract_values_from_results(origin, id):
             series = [x for x in results
                       if x['context']['id'] == id
                       if x['context']['origin'] == origin]
-            self.assertEqual(len(series), 1, '{}:{} gave {} value series (1 expected)'.format(origin, id, len(series)))
+            self.assertEqual(len(series), 10, '{}:{} gave {} value series (10 expected)'.format(origin, id, len(series)))
             return [x['value'] for x in series[0]['values']]
 
         def get_stats_from_requests(id, origin):
             values = extract_values_from_results(id, origin)
             return Stats(values)
+
+        # TODO: Fix this to use better mocking mechanism
+        patch_calls = []
+        def patch_callback(request):
+            api_response = self.client.patch(request.url, data=ujson.decode(request.body), headers=request.headers)
+            patch_calls.append(api_response.data)
+
+            return api_response.status_code, {}, api_response.content
+
         url = reverse('task-run', args=[self.task_to_delete.id, ])
         api_uri = re.compile(r'https?://testserver')
 
@@ -91,20 +109,43 @@ class TestResultTestCase(APITestCase):
                       body=self.mw_content, status=status.HTTP_200_OK,
                       adding_headers={'X-Backend-Response-Time': '123', })
 
+        # mocking task status update requests
+        responses.add_callback(responses.PATCH, api_uri, callback=patch_callback,
+                               content_type='application/json')
+
         # mocking API results calls
         responses.add_callback(responses.POST, api_uri, callback=post_callback,
                                content_type='application/json')
+        responses.add_callback(responses.PUT, api_uri, callback=put_callback,
+                               content_type='application/json')
+        responses.add_callback(responses.GET, api_uri, callback=get_callback,
+                               content_type='application/json')
 
         response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED,
-                         msg='Run task failed: {0}'.format(response.data))
 
-        results = self.response_data['results']
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED,
+                         msg='Run task failed: {0}'.format(response.content))
+
+        # fetching data for a task
+        url = reverse('task-detail', args=[self.task_to_delete.id, ])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK,
+                         msg='Get task failed: {0}'.format(response.content))
+
+        # now get result
+        url = response.data['results'][0]
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK,
+                         msg='Get result failed: {0}'.format(response.content))
+
+        results = response.data['results']
 
         response_times = get_stats_from_requests('requests', 'server.app.response_time')
         self.assertEqual(response_times.count, 10)
-        self.assertEqual(response_times.min, 123.0)
-        self.assertEqual(response_times.max, 123.0)
+        self.assertEqual(response_times.min, 2.0)
+        self.assertEqual(response_times.max, 2.0)
 
         memcached_dupes = get_stats_from_requests('mw_profiler', 'server.app.memcached.dupe_count')
         memcached_misses = get_stats_from_requests('mw_profiler', 'server.app.memcached.miss_count')
@@ -134,6 +175,14 @@ class TestResultTestCase(APITestCase):
         self.assertEqual(html_size.max, 124541.0)
         self.assertEqual(other_count.max, 19.0)
 
+        # status update (7 * IN_PROGRESS + 1 * DONE)
+        self.assertEqual(len(patch_calls), 8)
+        # starting -> IN PROGRESS
+        self.assertEqual(patch_calls[0]['status'], TaskStatus.IN_PROGRESS)
+        # finished -> DONE
+        self.assertEqual(patch_calls[-1]['status'], TaskStatus.DONE)
+
+
     def test_update_result(self):
         url = reverse('task-detail', args=[self.task_to_delete.id, ])
         payload = {'status': TaskStatus.ERROR}
@@ -148,3 +197,15 @@ class TestResultTestCase(APITestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT,
                          msg='Delete failed: {0}'.format(response.data))
+
+    @responses.activate
+    def test_update_task_status(self):
+        url = reverse('task-detail', args=[self.task_to_delete.id, ])
+        api_uri = re.compile(r'https?://testserver')
+
+        response = self.client.patch(url, {'status': 1})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        results = response.data
+
+        self.assertEqual(results['status'], 1)

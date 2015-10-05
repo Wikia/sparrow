@@ -16,9 +16,11 @@ class TestResultSerializer(serializers.HyperlinkedModelSerializer):
         model = TestResult
         fields = ('id', 'test_run', 'task', 'created', 'results', 'raw_results', 'url')
 
+
 class TestRawResultSerializer(serializers.HyperlinkedModelSerializer):
     data = JSONField(required=False)
+    context = JSONField(required=False)
 
     class Meta:
         model = TestRawResult
-        fields = ('id', 'result', 'data', 'url')
+        fields = ('id', 'result', 'data', 'context', 'generator', 'url')

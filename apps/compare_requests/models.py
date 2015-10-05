@@ -24,6 +24,8 @@ class CompareRequest(models.Model):
     head_sha = models.CharField(max_length=40)
     head_test_run = models.ForeignKey('test_runs.TestRun', related_name='head_in_compare_requests')
 
+    silent = models.BooleanField(default=False)
+
     created = models.DateTimeField(auto_now_add=True)
 
     def __repr__(self):
@@ -64,7 +66,7 @@ class CompareRequest(models.Model):
         Add comment about test execution error
         """
 
-        text = "Performance comparison ended up with errors. Please inspect logs for more details."
+        text = ":exclamation: [WikiaSparrow] Could not execute the test suite. Please inspect logs for more details."
         self.notify_pull_request(text)
 
     def notify_pull_request(self, text):
@@ -74,6 +76,10 @@ class CompareRequest(models.Model):
         :param text: Comment body
         :return:
         """
+
+        if self.silent:
+            return
+
         github = GitHub()
         github.post_pull_request_comment(self.repo,self.pull_request_num,text)
 

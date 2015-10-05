@@ -1,6 +1,7 @@
 # Base settings file
 
 import os
+import socket
 import sys
 from unipath import Path
 
@@ -78,6 +79,7 @@ STATICFILES_DIRS = ()
 SECRET_KEY = get_env_var('SPARROW_SECRET_KEY')
 
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -122,6 +124,7 @@ INSTALLED_APPS = (
 
     # Third party apps
     'rest_framework',
+    'corsheaders',
 
     # local apps
     'rest_framework_swagger',
@@ -131,6 +134,8 @@ INSTALLED_APPS = (
     'testrunner',
     'metrics',
     'compare_requests',
+
+    'frontend',
 )
 
 # Django REST Framework Settings
@@ -149,6 +154,10 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'redis'
 CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+
+# CORS headers
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_METHODS = ('GET',)
 
 # AUTH_USER_MODEL = 'path.to.UserModel'
 
@@ -210,20 +219,19 @@ LOGGING = {
 import logging.config
 logging.config.dictConfig(LOGGING)
 
-SPARROW_TEST_RUNNER = {
-    'deploy_host': {
-        'hostname': get_env_var('SPARROW_RUNNER_DEPLOY_HOST'),
-    },
-    'target_hosts': [
-        {
-            'hostname': get_env_var('SPARROW_RUNNER_TARGET_HOST'),
-        }
-    ],
-    'api_server': get_env_var('SPARROW_API_URI'),
-    'phantomas_path': get_env_var('SPARROW_RUNNER_PHANTOMAS'),
-    'use_virtual_display': ('DISPLAY' not in os.environ) or (os.environ.get('SPARROW_FORCE_VIRTUAL_DISPLAY','0') != '0'),
-}
+# api server (defaults to hostname)
+API_SERVER_URL = get_env_var('SPARROW_API_SERVER_URL', 'http://' + socket.gethostname()).rstrip('/')
 
+# deploy tools
+DEPLOYTOOLS_MASTER = get_env_var('SPARROW_RUNNER_DEPLOY_HOST')
+TEST_TARGET_HOSTS = [get_env_var('SPARROW_RUNNER_TARGET_HOST')]
+
+# external tools
+PHANTOMAS_PATH = get_env_var('SPARROW_RUNNER_PHANTOMAS')
 CRHOMEDRIVER_PATH = get_env_var('SPARROW_RUNNER_CHROMEDRIVER')
 
+# selenium test configuration
+SELENIUM_USE_VIRTUAL_DISPLAY = ('DISPLAY' not in os.environ) or (os.environ.get('SPARROW_FORCE_VIRTUAL_DISPLAY','0') != '0')
+
+# external services
 GITHUB_TOKEN  = get_env_var('SPARROW_GITHUB_TOKEN')

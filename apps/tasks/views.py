@@ -28,11 +28,6 @@ class TaskViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['post', ])
     def run(self, request, pk=None):
         task = self.get_object()
-
-        task.run(
-            result_uri=request.build_absolute_uri(reverse('testresult-list')),
-            task_uri=request.build_absolute_uri(reverse('task-detail', args=[pk, ])),
-            test_run_uri=request.build_absolute_uri(reverse('testrun-detail', args=[task.test_run_id, ])),
-        )
+        task.run()
 
         return Response(status=status.HTTP_202_ACCEPTED)

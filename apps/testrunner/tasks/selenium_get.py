@@ -9,10 +9,11 @@ from pyvirtualdisplay.display import Display
 from selenium.webdriver import DesiredCapabilities
 from selenium import webdriver
 from common.utils import collect_results
-from testrunner import app as celery_app
+from .base_task import BaseTask
 from testrunner.test_suites.selenium_tests import selenium_tests
 from testrunner.test_suites.selenium_tests.selenium_timer import SeleniumTimer
 from common import media_wiki_tools
+from testrunner.api_client import ApiClient
 
 from django.conf import settings
 
@@ -28,7 +29,7 @@ class quitting(object):
         self.thing.quit()
 
 
-class SeleniumGet(celery_app.Task):
+class SeleniumGet(BaseTask):
     @staticmethod
     def get_driver():
         caps = DesiredCapabilities.CHROME
@@ -63,8 +64,11 @@ class SeleniumGet(celery_app.Task):
             #  'params': {'hostname': hostname}}
         ]
 
-    def run(self, url, retries=1, tests=None):
+    def run(self, result_uri, url, retries=1, tests=None, **params):
         logger.info('Starting getting data ({0} runs) with selenium for url: {1}'.format(retries, url))
+
+        self.position = params.get('task_position', self.MIDDLE)
+        self.on_start(params['task_uri'])
 
         results = {}
         if tests is None:
@@ -72,7 +76,7 @@ class SeleniumGet(celery_app.Task):
 
         display = None
         try:
-            if settings.SPARROW_TEST_RUNNER['use_virtual_display']:
+            if settings.SELENIUM_USE_VIRTUAL_DISPLAY:
                 display = Display()
                 display.start()
 
@@ -80,7 +84,7 @@ class SeleniumGet(celery_app.Task):
                 return self.run_test(test)
 
             for test in tests:
-                test_results = zip(range(retries),collect_results(run_test,retries))
+                test_results = zip(range(retries), collect_results(run_test, retries))
                 results[test['test_name']] = [
                     {
                         'run': i + 1,
@@ -93,14 +97,17 @@ class SeleniumGet(celery_app.Task):
             if display is not None:
                 display.stop()
 
+        logger.info('Sending results from Selenium for url: {0}'.format(url))
 
-        return {
+        # posting raw results
+        ApiClient.post(params['raw_result_uri'], {
+            'result': result_uri,
             'generator': 'selenium',
-            'context': {
-                'origin': 'selenium'
-            },
-            'data': results
-        }
+            'context': {'url': url, 'origin': 'selenium', },
+            'data': results,
+        })
+
+        return result_uri
 
     def run_test(self, test):
         logger.info('Running selenium test: ' + test['test_name'])

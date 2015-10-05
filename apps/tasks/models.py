@@ -4,13 +4,15 @@ from __future__ import unicode_literals
 from django.db import models
 import django.dispatch
 from django.utils.translation import ugettext as _
+from django.core.urlresolvers import reverse
 from django_enumfield import enum
 import celery.states
+from common.utils import build_absolute_uri
 
 from testrunner.test_suites.simple import SimpleTestSuite
 
+from .signals import task_status_changed
 
-task_status_changed = django.dispatch.Signal(providing_args=['instance', ])
 
 
 class TaskStatus(enum.Enum):
@@ -62,15 +64,22 @@ class Task(models.Model):
             task_status_changed.send(self.__class__, instance=self)
             self.__original_status = self.status
 
-    def run(self, result_uri, task_uri, test_run_uri):
+    def run(self):
+        results_uri=build_absolute_uri(reverse('testresult-list'))
+        raw_result_uri=build_absolute_uri(reverse('testrawresult-list'))
+        task_uri=build_absolute_uri(reverse('task-detail', args=[self.id, ]))
+        test_run_uri=build_absolute_uri(reverse('testrun-detail', args=[self.test_run_id, ]))
+
         test_run = self.test_run
         suite = SimpleTestSuite()
         result = suite.run(
+            task_id=self.id,
             retries=test_run.retries,
             url=test_run.test_run_uri,
             app_commit=test_run.app_commit,
             config_commit=test_run.config_commit,
-            result_uri=result_uri,
+            results_uri=results_uri,
+            raw_result_uri=raw_result_uri,
             task_uri=task_uri,
             test_run_uri=test_run_uri
         )
