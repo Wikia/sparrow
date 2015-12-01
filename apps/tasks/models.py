@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import models
-import django.dispatch
 from django.utils.translation import ugettext as _
 from django.core.urlresolvers import reverse
 from django_enumfield import enum

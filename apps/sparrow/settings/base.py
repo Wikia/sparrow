@@ -219,8 +219,30 @@ LOGGING = {
 import logging.config
 logging.config.dictConfig(LOGGING)
 
+
+def check_runserver_hostname():
+    import sys
+    default_host = socket.gethostname()
+    default_port = "8080"
+
+    if len(sys.argv) < 1 or sys.argv[1] not in ("runserver", "runserver_plus"):
+        return "{}:{}".format(default_host, default_port)
+
+    addrport = sys.argv[-1] if len(sys.argv) > 2 else default_host + ":" + default_port
+    if addrport.startswith("-"):
+        return
+    else:
+       try:
+            addr, port = addrport.split(':')
+       except ValueError:
+            addr, port = '', addrport
+    if not addr:
+        addr = default_host
+    return "{}:{}".format(addr, port)
+
+
 # api server (defaults to hostname)
-API_SERVER_URL = get_env_var('SPARROW_API_SERVER_URL', 'http://' + socket.gethostname()).rstrip('/')
+API_SERVER_URL = get_env_var('SPARROW_API_SERVER_URL', 'http://' + check_runserver_hostname()).rstrip('/')
 
 # deploy tools
 DEPLOYTOOLS_MASTER = get_env_var('SPARROW_RUNNER_DEPLOY_HOST')
