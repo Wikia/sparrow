@@ -90,7 +90,7 @@ PyGithub==1.26.0
 PyVirtualDisplay==0.1.5
 
 # Selenium Tests
-selenium==2.47.3
+selenium==2.48.0
 
 # CORS headers
 django-cors-headers==1.1.0
