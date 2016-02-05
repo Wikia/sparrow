@@ -4,12 +4,12 @@
 # To keep the compatibilty with Python 2.x and 3.x
 six==1.10.0
 
-django==1.9
-djangorestframework==3.3.1
+django==1.9.2
+djangorestframework==3.3.2
 
 ## Needed by the settings base module. Do not remove.
 Unipath==1.1
-dj-database-url==0.3.0
+dj-database-url==0.4.0
 
 #####################################################
 #
@@ -47,7 +47,7 @@ django-enumfield==1.2.1
 drf_ujson==1.2
 
 # https://github.com/marcgibbons/django-rest-swagger
-django-rest-swagger==0.3.4
+django-rest-swagger==0.3.5
 
 #####################################################
 #
@@ -55,7 +55,7 @@ django-rest-swagger==0.3.4
 #
 #####################################################
 # Main Celery package
-celery[redis]==3.1.19
+celery[redis]==3.1.20
 
 #####################################################
 #
@@ -71,14 +71,14 @@ jsonfield==1.0.3
 paramiko==1.16.0
 
 # Requests
-requests==2.8.1
+requests==2.9.1
 
 # Colorful logs
 # https://github.com/borntyping/python-colorlog
-colorlog==2.6.0
+colorlog==2.6.1
 
 # numerical and statistical library
-numpy==1.10.1
+numpy==1.10.4
 
 # phantomas
 phantomas==0.2.2
@@ -90,7 +90,7 @@ PyGithub==1.26.0
 PyVirtualDisplay==0.1.5
 
 # Selenium Tests
-selenium==2.48.0
+selenium==2.51.1
 
 # CORS headers
 django-cors-headers==1.1.0
