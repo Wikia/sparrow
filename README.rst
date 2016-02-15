@@ -39,7 +39,7 @@ these are divided into separate requirements for production and local developmen
 
 Install development requirements with::
 
-    pip install -r requirements/local.txt
+    pip install -r requirements.txt
 
 
 Install dependencies::
@@ -128,6 +128,15 @@ is not strictly necessary, but helpful to avoid the need for the
 
 Similarly, setting ``PYTHONPATH`` lets you use ``django-admin.py`` instead of
 ``python manage.py``.
+
+
+Dependencies
+~~~~~~~~~~~~
+
+We use pip-tools_ for dependency management. When adding/modifying dependencies please modify ``requirements.in`` file
+and run ``pip-compile`` afterwards.
+
+.. _pip-tools: https://github.com/nvie/pip-tools
 
 
 Running ``manage.py`` commands

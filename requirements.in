@@ -1,15 +1,12 @@
-# Base requirements file.
-# Place items here that should be installed in ALL environments.
-
 # To keep the compatibilty with Python 2.x and 3.x
-six==1.10.0
+six
 
-django==1.9.2
-djangorestframework==3.3.2
+django ~= 1.9
+djangorestframework ~= 3.3
 
 ## Needed by the settings base module. Do not remove.
-Unipath==1.1
-dj-database-url==0.4.0
+Unipath
+dj-database-url
 
 #####################################################
 #
@@ -24,14 +21,14 @@ dj-database-url==0.4.0
 # django-model-utils
 
 # PostgreSQL Database Adapter
-psycopg2==2.6.1
+psycopg2
 
 # MySQL Database Adapter
 # django-cymysql
 
 # Djangoe Enum Field
 # http://github.com/5monkeys/django-enumfield
-django-enumfield==1.2.1
+django-enumfield
 
 #####################################################
 #
@@ -44,10 +41,10 @@ django-enumfield==1.2.1
 # djangorestframework-msgpack
 
 # https://github.com/gizmag/drf-ujson-renderer
-drf_ujson==1.2
+drf_ujson
 
 # https://github.com/marcgibbons/django-rest-swagger
-django-rest-swagger==0.3.5
+django-rest-swagger
 
 #####################################################
 #
@@ -55,7 +52,7 @@ django-rest-swagger==0.3.5
 #
 #####################################################
 # Main Celery package
-celery[redis]==3.1.20
+celery[redis]
 
 #####################################################
 #
@@ -65,32 +62,68 @@ celery[redis]==3.1.20
 
 # Support for JSON in database models
 # https://bitbucket.org/schinckel/django-jsonfield/
-jsonfield==1.0.3
+jsonfield
 
 # Paramiko SSH client
-paramiko==1.16.0
+paramiko
 
 # Requests
-requests==2.9.1
+requests
 
 # Colorful logs
 # https://github.com/borntyping/python-colorlog
-colorlog==2.6.1
+colorlog
 
 # numerical and statistical library
-numpy==1.10.4
+numpy
 
 # phantomas
-phantomas==0.2.2
+phantomas
 
 # PyGithub
-PyGithub==1.26.0
+PyGithub
 
 # PyVirtualDisplay
-PyVirtualDisplay==0.1.5
+PyVirtualDisplay
 
 # Selenium Tests
-selenium==2.51.1
+selenium
 
 # CORS headers
-django-cors-headers==1.1.0
+django-cors-headers
+
+#####################################################
+#
+# Development packages
+#
+#####################################################
+
+django-debug-toolbar
+django-extensions
+
+# For easy deployments
+# http://docs.fabfile.org/en/latest/
+# Fabric
+
+# Dependent on the Pypi version it can be required by Sphinx
+sphinx_rtd_theme
+
+# For building documentation
+# http://sphinx-doc.org/
+Sphinx
+
+# For running tests
+coverage
+
+# For easy fixtures and test creation
+model_mommy
+mock
+
+# https://github.com/getsentry/responses
+responses
+
+# For jenkins integration
+django-jenkins
+pep8
+pyflakes
+flake8
