@@ -225,7 +225,7 @@ def check_runserver_hostname():
     default_host = socket.gethostname()
     default_port = "8080"
 
-    if len(sys.argv) < 1 or sys.argv[1] not in ("runserver", "runserver_plus"):
+    if len(sys.argv) < 2 or sys.argv[1] not in ("runserver", "runserver_plus"):
         return "{}:{}".format(default_host, default_port)
 
     addrport = sys.argv[-1] if len(sys.argv) > 2 else default_host + ":" + default_port
